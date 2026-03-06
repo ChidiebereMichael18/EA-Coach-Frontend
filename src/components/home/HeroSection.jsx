@@ -8,7 +8,7 @@ const HeroSection = () => {
     date: ''
   });
 
-  const ugandaLocations = [
+ const ugandaLocations = [
     'Kampala',
     'Jinja',
     'Mbarara',
@@ -22,11 +22,24 @@ const HeroSection = () => {
     'Kasese',
     'Soroti',
     'Kitgum',
-    'Hoima'
+    'Hoima','Nairobi', 'Kigali', 'Dar es Salaam'
   ];
 
   const destinations = [
-    'Jinja', 'Mbarara', 'Gulu', 'Nairobi', 'Kigali', 'Juba', 'Dar es Salaam'
+    'Kampala',
+    'Jinja',
+    'Mbarara',
+    'Gulu',
+    'Lira',
+    'Arua',
+    'Masaka',
+    'Mbale',
+    'Fort Portal',
+    'Kabale',
+    'Kasese',
+    'Soroti',
+    'Kitgum',
+    'Hoima', 'Nairobi', 'Kigali', 'Dar es Salaam'
   ];
 
   const handleSubmit = (e) => {
