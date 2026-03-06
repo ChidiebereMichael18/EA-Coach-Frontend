@@ -87,7 +87,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name *
               </label>
               <div className="relative">
@@ -97,7 +97,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                   value={passenger.fullName}
                   onChange={(e) => handleChange(index, 'fullName', e.target.value)}
                   placeholder="Enter full name"
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500 ${
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition  ${
                     errors[`${index}-fullName`] ? 'border-red-500' : ''
                   }`}
                 />
@@ -120,7 +120,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                   placeholder="Enter age"
                   min="1"
                   max="120"
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500 ${
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition ${
                     errors[`${index}-age`] ? 'border-red-500' : ''
                   }`}
                 />
@@ -137,7 +137,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
               <select
                 value={passenger.gender}
                 onChange={(e) => handleChange(index, 'gender', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500 ${
+                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition ${
                   errors[`${index}-gender`] ? 'border-red-500' : ''
                 }`}
               >
@@ -162,7 +162,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                   value={passenger.phone}
                   onChange={(e) => handleChange(index, 'phone', e.target.value)}
                   placeholder="+256 XXX XXX XXX"
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500 ${
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition  ${
                     errors[`${index}-phone`] ? 'border-red-500' : ''
                   }`}
                 />
@@ -183,7 +183,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                   value={passenger.email}
                   onChange={(e) => handleChange(index, 'email', e.target.value)}
                   placeholder="Enter email"
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500 ${
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition ${
                     errors[`${index}-email`] ? 'border-red-500' : ''
                   }`}
                 />
@@ -193,7 +193,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 ID Type
               </label>
@@ -202,14 +202,14 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                 <select
                   value={passenger.idType}
                   onChange={(e) => handleChange(index, 'idType', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition"
                 >
                   <option>National ID</option>
                   <option>Passport</option>
                   <option>Driving Permit</option>
                 </select>
               </div>
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -220,7 +220,7 @@ const PassengerForm = ({ seatCount, selectedSeats, busPrice, onSubmit }) => {
                 value={passenger.idNumber}
                 onChange={(e) => handleChange(index, 'idNumber', e.target.value)}
                 placeholder="Enter ID number"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
               />
             </div>
           </div>
