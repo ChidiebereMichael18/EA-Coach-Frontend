@@ -135,14 +135,14 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
         </button>
         <button
           onClick={handlePrint}
-          className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center bg-blue-400 text-white space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Printer size={18} />
           <span>Print Ticket</span>
         </button>
         <button
           onClick={handleShare}
-          className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center bg-green-400 text-white space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
         >
           <Share2 size={18} />
           <span>Share</span>
@@ -153,13 +153,13 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
       <div className="flex justify-center space-x-6">
         <Link
           to="/dashboard"
-          className="text-bg-blue-500 hover:text-blue-600 font-semibold"
+          className="text-blue-500 hover:text-blue-600 font-semibold"
         >
           View in Dashboard
         </Link>
         <button
           onClick={onNewBooking}
-          className="text-gray-600 hover:text-gray-800 font-semibold"
+          className="text-gray-600 hover:text-red-400 font-semibold"
         >
           Book Another Trip
         </button>

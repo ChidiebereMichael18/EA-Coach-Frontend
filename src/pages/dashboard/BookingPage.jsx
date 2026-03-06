@@ -502,7 +502,7 @@ const handlePaymentComplete = (method) => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-bg-blue-500 transition-colors"
+                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
                 >
                   <ChevronLeft size={20} />
                   <span>Back to bus selection</span>
@@ -535,7 +535,7 @@ const handlePaymentComplete = (method) => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-bg-blue-500 transition-colors"
+                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
                 >
                   <ChevronLeft size={20} />
                   <span>Back to seat selection</span>
@@ -571,7 +571,7 @@ const handlePaymentComplete = (method) => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(3)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-bg-blue-500 transition-colors"
+                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
                 >
                   <ChevronLeft size={20} />
                   <span>Back to passenger details</span>
