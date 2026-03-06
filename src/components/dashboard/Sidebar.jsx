@@ -38,8 +38,8 @@ const Sidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout }) =
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
           <div className="flex items-center space-x-2">
-            <Bus className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <Bus className="w-8 h-8 text-blue-500" />
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-blue-300 bg-clip-text text-transparent">
               EA Coach
             </span>
           </div>
@@ -69,7 +69,7 @@ const Sidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout }) =
                       w-full flex items-center space-x-3 px-4 py-3 rounded-lg
                       transition-all duration-200 group
                       ${isActive 
-                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg' 
+                        ? 'bg-blue-500 text-white shadow-lg' 
                         : 'text-gray-600 hover:bg-gray-100'
                       }
                     `}
@@ -79,7 +79,7 @@ const Sidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout }) =
                     
                     {/* Active Indicator */}
                     {isActive && (
-                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                     )}
                   </button>
                 </li>
@@ -92,9 +92,9 @@ const Sidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout }) =
         <div className="p-3 border-t border-gray-200">
           <button
             onClick={onLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            className="w-full flex items-center bg-red-400 space-x-3 px-4 py-3 rounded-lg text-white hover:bg-red-600 transition-all duration-200 group"
           >
-            <LogOut size={20} className="text-gray-400 group-hover:text-red-600" />
+            <LogOut size={20} className="text-white group-hover:text-white" />
             <span className="font-medium">Logout</span>
           </button>
         </div>
@@ -103,7 +103,7 @@ const Sidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout }) =
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="absolute -right-3 top-20 hidden lg:block bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow"
-        >
+        >   
           {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         </button>
       </aside>
