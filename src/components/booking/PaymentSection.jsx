@@ -138,7 +138,7 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
                   })}
                   placeholder="1234 5678 9012 3456"
                   maxLength="19"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
                 />
               </div>
 
@@ -156,7 +156,7 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
                     })}
                     placeholder="MM/YY"
                     maxLength="5"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
                   />
                 </div>
                 <div>
@@ -172,7 +172,7 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
                     })}
                     placeholder="123"
                     maxLength="3"
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
                   />
                 </div>
               </div>
@@ -189,7 +189,7 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
                     name: e.target.value
                   })}
                   placeholder="Name on card"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
                     number: e.target.value
                   })}
                   placeholder="07XXXXXXXX"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-bg-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-transparent transition"
                 />
               </div>
 
