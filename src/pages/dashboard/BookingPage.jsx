@@ -12,6 +12,7 @@ import {
   MapPin,
   Calendar,
   ArrowRight,
+  ArrowLeft,
   ChevronLeft,
   Bus,
 } from "lucide-react";
@@ -23,11 +24,11 @@ const BookingPage = () => {
   const queryParams = new URLSearchParams(location.search);
 
   const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState({
-      from: '',
-      to: '',
-      date: ''
-    });
+  const [formData, setFormData] = useState({
+    from: "",
+    to: "",
+    date: "",
+  });
   const [searchData, setSearchData] = useState({
     from: queryParams.get("from") || "Kampala",
     to: queryParams.get("to") || "Nairobi",
@@ -41,51 +42,56 @@ const BookingPage = () => {
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingId, setBookingId] = useState("");
 
-useEffect(() => {
-  if (!selectedBus && currentStep > 1) {
-    setCurrentStep(1);
-  }
-}, [selectedBus, currentStep]);
+  useEffect(() => {
+    if (!selectedBus && currentStep > 1) {
+      setCurrentStep(1);
+    }
+  }, [selectedBus, currentStep]);
 
-
- const ugandaLocations = [
-    'Kampala',
-    'Jinja',
-    'Mbarara',
-    'Gulu',
-    'Lira',
-    'Arua',
-    'Masaka',
-    'Mbale',
-    'Fort Portal',
-    'Kabale',
-    'Kasese',
-    'Soroti',
-    'Kitgum',
-    'Hoima','Nairobi', 'Kigali', 'Dar es Salaam'
+  const ugandaLocations = [
+    "Kampala",
+    "Jinja",
+    "Mbarara",
+    "Gulu",
+    "Lira",
+    "Arua",
+    "Masaka",
+    "Mbale",
+    "Fort Portal",
+    "Kabale",
+    "Kasese",
+    "Soroti",
+    "Kitgum",
+    "Hoima",
+    "Nairobi",
+    "Kigali",
+    "Dar es Salaam",
   ];
 
   const destinations = [
-    'Kampala',
-    'Jinja',
-    'Mbarara',
-    'Gulu',
-    'Lira',
-    'Arua',
-    'Masaka',
-    'Mbale',
-    'Fort Portal',
-    'Kabale',
-    'Kasese',
-    'Soroti',
-    'Kitgum',
-    'Hoima', 'Nairobi', 'Kigali', 'Dar es Salaam'
+    "Kampala",
+    "Jinja",
+    "Mbarara",
+    "Gulu",
+    "Lira",
+    "Arua",
+    "Masaka",
+    "Mbale",
+    "Fort Portal",
+    "Kabale",
+    "Kasese",
+    "Soroti",
+    "Kitgum",
+    "Hoima",
+    "Nairobi",
+    "Kigali",
+    "Dar es Salaam",
   ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle search
-    console.log('Searching:', formData);
+    console.log("Searching:", formData);
   };
   // Mock data - replace with API calls
   useEffect(() => {
@@ -177,42 +183,42 @@ useEffect(() => {
     }
   };
 
-
   const handlePassengerSubmit = (passengers) => {
     setPassengerDetails(passengers);
     setCurrentStep(4);
   };
 
-const handlePaymentComplete = (method) => {
-  if (!selectedBus) return; // Safety guard
+  const handlePaymentComplete = (method) => {
+    if (!selectedBus) return; // Safety guard
 
-  setPaymentMethod(method);
-  const newBookingId = `BK-${Date.now().toString().slice(-8)}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-  setBookingId(newBookingId);
-  setBookingComplete(true);
+    setPaymentMethod(method);
+    const newBookingId = `BK-${Date.now().toString().slice(-8)}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    setBookingId(newBookingId);
+    setBookingComplete(true);
 
-  const bookingData = {
-    id: newBookingId,
-    bookingId: newBookingId,
-    from: searchData.from,
-    to: searchData.to,
-    date: searchData.date,
-    time: selectedBus.departureTime,
-    company: selectedBus.company,
-    busNumber: selectedBus.busNumber,
-    seats: selectedSeats,
-    amount: selectedSeats.length * selectedBus.price,
-    price: selectedBus.price,
-    status: 'confirmed',
-    bookingDate: new Date().toISOString(),
-    passengers: passengerDetails,
-    paymentMethod: method,
+    const bookingData = {
+      id: newBookingId,
+      bookingId: newBookingId,
+      from: searchData.from,
+      to: searchData.to,
+      date: searchData.date,
+      time: selectedBus.departureTime,
+      company: selectedBus.company,
+      busNumber: selectedBus.busNumber,
+      seats: selectedSeats,
+      amount: selectedSeats.length * selectedBus.price,
+      price: selectedBus.price,
+      status: "confirmed",
+      bookingDate: new Date().toISOString(),
+      passengers: passengerDetails,
+      paymentMethod: method,
+    };
+
+    const existingBookings =
+      JSON.parse(localStorage.getItem("userBookings")) || [];
+    existingBookings.push(bookingData);
+    localStorage.setItem("userBookings", JSON.stringify(existingBookings));
   };
-
-  const existingBookings = JSON.parse(localStorage.getItem('userBookings')) || [];
-  existingBookings.push(bookingData);
-  localStorage.setItem('userBookings', JSON.stringify(existingBookings));
-};
 
   const steps = [
     { number: 1, name: "Select Bus", icon: Search },
@@ -224,6 +230,13 @@ const handlePaymentComplete = (method) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+
+      <button
+        onClick={() => navigate("/dashboard")}
+        className="mx-4 p-1 text-blue-600 hover:text-blue-800 cursor-pointer  hover:bg-blue-50 rounded-full transition-colors"
+      >
+        <ArrowLeft size={20} />
+      </button>
 
       <main className="container mx-auto px-4 py-8">
         {/* Progress Steps */}
@@ -296,71 +309,96 @@ const handlePaymentComplete = (method) => {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="bg-white/10 backdrop-blur-md rounded-3xl p-2">
-                          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-2xl">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                              {/* From Field */}
-                              <div className="relative">
-                                <label className="block text-sm font-bold text-gray-800 mb-3">
-                                  <MapPin className="inline-block mr-2 text-blue-600" size={18} />
-                                  From
-                                </label>
-                                <select
-                                  value={formData.from}
-                                  onChange={(e) => setFormData({...formData, from: e.target.value})}
-                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-800 font-medium transition-all"
-                                >
-                                  <option value="">Select departure city</option>
-                                  {ugandaLocations.map(location => (
-                                    <option key={location} value={location}>{location}</option>
-                                  ))}
-                                </select>
-                              </div>
-              
-                              {/* To Field */}
-                              <div className="relative">
-                                <label className="block text-sm font-bold text-gray-800 mb-3">
-                                  <MapPin className="inline-block mr-2 text-orange-600" size={18} />
-                                  To
-                                </label>
-                                <select
-                                  value={formData.to}
-                                  onChange={(e) => setFormData({...formData, to: e.target.value})}
-                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 text-gray-800 font-medium transition-all"
-                                >
-                                  <option value="">Select destination</option>
-                                  {destinations.map(dest => (
-                                    <option key={dest} value={dest}>{dest}</option>
-                                  ))}
-                                </select>
-                              </div>
-              
-                              {/* Date Field */}
-                              <div className="relative">
-                                <label className="block text-sm font-bold text-gray-800 mb-3">
-                                  <Calendar className="inline-block mr-2 text-green-600" size={18} />
-                                  Date
-                                </label>
-                                <input
-                                  type="date"
-                                  value={formData.date}
-                                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                                  min={new Date().toISOString().split('T')[0]}
-                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-gray-800 font-medium transition-all"
-                                />
-                              </div>
-              
-                              {/* Search Button */}
-                              <button
-                                type="submit"
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2 group self-end"
-                              >
-                                <Search size={20} />
-                                <span>Search</span>
-                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                              </button>
-                            </div>
-                          </form>
-                        </div>
+                  <form
+                    onSubmit={handleSubmit}
+                    className="bg-white rounded-2xl p-6 shadow-2xl"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {/* From Field */}
+                      <div className="relative">
+                        <label className="block text-sm font-bold text-gray-800 mb-3">
+                          <MapPin
+                            className="inline-block mr-2 text-blue-600"
+                            size={18}
+                          />
+                          From
+                        </label>
+                        <select
+                          value={formData.from}
+                          onChange={(e) =>
+                            setFormData({ ...formData, from: e.target.value })
+                          }
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-800 font-medium transition-all"
+                        >
+                          <option value="">Select departure city</option>
+                          {ugandaLocations.map((location) => (
+                            <option key={location} value={location}>
+                              {location}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* To Field */}
+                      <div className="relative">
+                        <label className="block text-sm font-bold text-gray-800 mb-3">
+                          <MapPin
+                            className="inline-block mr-2 text-orange-600"
+                            size={18}
+                          />
+                          To
+                        </label>
+                        <select
+                          value={formData.to}
+                          onChange={(e) =>
+                            setFormData({ ...formData, to: e.target.value })
+                          }
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 text-gray-800 font-medium transition-all"
+                        >
+                          <option value="">Select destination</option>
+                          {destinations.map((dest) => (
+                            <option key={dest} value={dest}>
+                              {dest}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Date Field */}
+                      <div className="relative">
+                        <label className="block text-sm font-bold text-gray-800 mb-3">
+                          <Calendar
+                            className="inline-block mr-2 text-green-600"
+                            size={18}
+                          />
+                          Date
+                        </label>
+                        <input
+                          type="date"
+                          value={formData.date}
+                          onChange={(e) =>
+                            setFormData({ ...formData, date: e.target.value })
+                          }
+                          min={new Date().toISOString().split("T")[0]}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-gray-800 font-medium transition-all"
+                        />
+                      </div>
+
+                      {/* Search Button */}
+                      <button
+                        type="submit"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 hover:shadow-lg flex items-center justify-center space-x-2 group self-end"
+                      >
+                        <Search size={20} />
+                        <span>Search</span>
+                        <ArrowRight
+                          size={20}
+                          className="group-hover:translate-x-1 transition-transform"
+                        />
+                      </button>
+                    </div>
+                  </form>
+                </div>
 
                 {/* Available Buses */}
                 {!searchData.to ? (
