@@ -48,7 +48,6 @@ const BusManagement = () => {
       lastMaintenance: '2024-03-01',
       nextMaintenance: '2024-04-01',
       driver: 'John Mukasa',
-      conductor: 'Peter Okello',
       image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop'
     },
     {
@@ -71,7 +70,7 @@ const BusManagement = () => {
       lastMaintenance: '2024-02-15',
       nextMaintenance: '2024-03-15',
       driver: 'Sarah Nambi',
-      conductor: 'James Ochieng',
+
       image: 'https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?w=600&h=400&fit=crop'
     },
     {
@@ -94,7 +93,6 @@ const BusManagement = () => {
       lastMaintenance: '2024-03-10',
       nextMaintenance: '2024-03-25',
       driver: 'David Ssemakula',
-      conductor: 'Michael Ouma',
       image: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600&h=400&fit=crop'
     },
     {
@@ -117,7 +115,6 @@ const BusManagement = () => {
       lastMaintenance: '2024-02-28',
       nextMaintenance: '2024-03-28',
       driver: 'Robert Kato',
-      conductor: 'Joseph Ochieng',
       image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop'
     },
     {
@@ -140,7 +137,6 @@ const BusManagement = () => {
       lastMaintenance: '2024-01-15',
       nextMaintenance: '2024-02-15',
       driver: 'Charles Wasswa',
-      conductor: 'Paul Otieno',
       image: 'https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?w=600&h=400&fit=crop'
     }
   ]);
@@ -339,10 +335,6 @@ const BusManagement = () => {
                     <div>
                       <p className="text-xs text-gray-500">Driver</p>
                       <p className="font-medium">{bus.driver}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Conductor</p>
-                      <p className="font-medium">{bus.conductor}</p>
                     </div>
                   </div>
                 </div>
