@@ -13,41 +13,39 @@ import DriverManagement from '../../components/admin/DriverManagement';
 const AdminDashboardPage = () => {
   const [currentView, setCurrentView] = useState('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [admin, setAdmin] = useState({
-  name: 'Admin User',
-  email: 'admin@example.com',
-  role: 'admin',
-  permissions: ['manage_users', 'manage_buses', 'manage_bookings', 'view_reports']
-});
+  const [admin, setAdmin] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
 
-
-  // useEffect(() => {
-  //   // Check if admin is logged in
-  //   const adminData = localStorage.getItem('admin');
-  //   const userData = JSON.parse(localStorage.getItem('user'));
-    
-  //   if (adminData) {
-  //     setAdmin(JSON.parse(adminData));
-  //   } else if (userData?.role === 'admin') {
-  //     // If user is admin but no admin data, create it
-  //     const newAdminData = {
-  //       ...userData,
-  //       permissions: ['manage_users', 'manage_buses', 'manage_bookings', 'view_reports']
-  //     };
-  //     localStorage.setItem('admin', JSON.stringify(newAdminData));
-  //     setAdmin(newAdminData);
-  //   } else {
-  //     // Redirect to login if not admin
-  //     navigate('/admin');
-  //   }
-  // }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (!token || !userStr) {
+      navigate('/admin/login', { replace: true });
+      return;
+    }
+    try {
+      const user = JSON.parse(userStr);
+      if (user?.role !== 'admin') {
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+      setAdmin({
+        ...user,
+        permissions: ['manage_users', 'manage_buses', 'manage_bookings', 'view_reports'],
+      });
+    } catch {
+      navigate('/admin/login', { replace: true });
+    } finally {
+      setAuthChecked(true);
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('admin');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    navigate('/admin/login');
+    navigate('/admin/login', { replace: true });
   };
 
   const renderView = () => {
@@ -71,13 +69,13 @@ const AdminDashboardPage = () => {
     }
   };
 
-  // if (!admin) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-  //     </div>
-  //   );
-  // }
+  if (!authChecked || !admin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

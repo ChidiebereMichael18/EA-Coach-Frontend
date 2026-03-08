@@ -1,130 +1,63 @@
-import React, { useState } from 'react';
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  MoreVertical,
+import React, { useState, useEffect } from 'react';
+import {
+  Users,
+  Search,
+  Filter,
   Edit2,
   Trash2,
-  Ban,
-  CheckCircle,
   Mail,
   Phone,
-  Calendar,
   UserPlus,
-  Download,
+  CheckCircle,
   Shield,
-  Star
+  AlertCircle,
 } from 'lucide-react';
+import { getAdminUsers } from '../../api/adminApi';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock users data
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '+256 700 123 456',
-      role: 'user',
-      status: 'active',
-      joined: '2024-01-15',
-      bookings: 12,
-      totalSpent: 1250000,
-      lastActive: '2024-03-15'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '+256 700 789 012',
-      role: 'user',
-      status: 'active',
-      joined: '2024-02-01',
-      bookings: 8,
-      totalSpent: 850000,
-      lastActive: '2024-03-14'
-    },
-    {
-      id: 3,
-      name: 'Robert Johnson',
-      email: 'robert@example.com',
-      phone: '+256 700 345 678',
-      role: 'user',
-      status: 'active',
-      joined: '2023-11-10',
-      bookings: 45,
-      totalSpent: 4500000,
-      lastActive: '2024-03-15'
-    },
-    {
-      id: 4,
-      name: 'Sarah Williams',
-      email: 'sarah@example.com',
-      phone: '+256 700 901 234',
-      role: 'user',
-      status: 'inactive',
-      joined: '2024-01-20',
-      bookings: 3,
-      totalSpent: 250000,
-      lastActive: '2024-02-28'
-    },
-    {
-      id: 5,
-      name: 'Michael Brown',
-      email: 'michael@example.com',
-      phone: '+256 700 567 890',
-      role: 'user',
-      status: 'suspended',
-      joined: '2023-12-05',
-      bookings: 15,
-      totalSpent: 1800000,
-      lastActive: '2024-03-10'
-    }
-  ]);
+  useEffect(() => {
+    getAdminUsers()
+      .then((res) => {
+        if (res.success) setUsers(res.data || []);
+        else setError(res.errorMessage || 'Failed to load users');
+      })
+      .catch(() => setError('Failed to load users'))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.phone.includes(searchTerm);
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.phone || '').includes(searchTerm);
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole;
   });
 
   const handleSelectAll = () => {
     if (selectedUsers.length === filteredUsers.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(u => u.id));
+      setSelectedUsers(filteredUsers.map((u) => u._id));
     }
   };
 
   const handleSelectUser = (id) => {
     if (selectedUsers.includes(id)) {
-      setSelectedUsers(selectedUsers.filter(u => u !== id));
+      setSelectedUsers(selectedUsers.filter((u) => u !== id));
     } else {
       setSelectedUsers([...selectedUsers, id]);
     }
   };
 
-  const handleBulkAction = (action) => {
-    console.log(`Bulk action ${action} on users:`, selectedUsers);
-    // Implement bulk actions
-  };
-
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'active': return 'bg-green-100 text-green-600';
-      case 'inactive': return 'bg-gray-100 text-gray-600';
-      case 'suspended': return 'bg-red-100 text-red-600';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
+  const adminCount = users.filter((u) => u.role === 'admin').length;
 
   return (
     <div className="space-y-6">
@@ -140,8 +73,21 @@ const UserManagement = () => {
         </button>
       </div>
 
+      {error && (
+        <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <AlertCircle size={18} className="flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center space-x-3">
             <div className="bg-blue-100 p-3 rounded-lg">
@@ -149,7 +95,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Users</p>
-              <p className="text-2xl font-bold text-gray-800">15,420</p>
+              <p className="text-2xl font-bold text-gray-800">{users.length.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -159,8 +105,8 @@ const UserManagement = () => {
               <CheckCircle className="text-green-600" size={20} />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Active Users</p>
-              <p className="text-2xl font-bold text-gray-800">8,234</p>
+              <p className="text-sm text-gray-500">Regular Users</p>
+              <p className="text-2xl font-bold text-gray-800">{(users.length - adminCount).toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -171,18 +117,7 @@ const UserManagement = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Admins</p>
-              <p className="text-2xl font-bold text-gray-800">24</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-yellow-100 p-3 rounded-lg">
-              <Star className="text-yellow-600" size={20} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">New Today</p>
-              <p className="text-2xl font-bold text-gray-800">45</p>
+              <p className="text-2xl font-bold text-gray-800">{adminCount}</p>
             </div>
           </div>
         </div>
@@ -211,16 +146,6 @@ const UserManagement = () => {
               <option value="all">All Roles</option>
               <option value="user">Users</option>
               <option value="admin">Admins</option>
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
             </select>
           </div>
         </div>
@@ -270,16 +195,7 @@ const UserManagement = () => {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Joined
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Bookings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Total Spent
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Actions
@@ -288,23 +204,23 @@ const UserManagement = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => handleSelectUser(user.id)}
+                      checked={selectedUsers.includes(user._id)}
+                      onChange={() => handleSelectUser(user._id)}
                       className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-secondary flex items-center justify-center text-white font-semibold text-sm">
-                        {user.name.charAt(0).toUpperCase()}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-300 flex items-center justify-center text-white font-semibold text-sm">
+                        {(user.name || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-500">ID: {user.id}</p>
+                        <p className="text-sm font-medium text-gray-900">{user.name || '—'}</p>
+                        <p className="text-xs text-gray-500">ID: {user._id?.slice(-6)}</p>
                       </div>
                     </div>
                   </td>
@@ -312,46 +228,33 @@ const UserManagement = () => {
                     <div className="space-y-1">
                       <p className="text-sm text-gray-600 flex items-center">
                         <Mail size={12} className="mr-1" />
-                        {user.email}
+                        {user.email || '—'}
                       </p>
                       <p className="text-sm text-gray-600 flex items-center">
                         <Phone size={12} className="mr-1" />
-                        {user.phone}
+                        {user.phone || '—'}
                       </p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-100 text-purple-600' 
-                        : 'bg-blue-100 text-blue-600'
+                      user.role === 'admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'
                     }`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                      {user.status}
+                      {user.role || 'user'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(user.joined).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {user.bookings}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                    UGX {user.totalSpent.toLocaleString()}
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button type="button" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                         <Edit2 size={16} className="text-gray-600" />
                       </button>
-                      <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button type="button" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                         <Mail size={16} className="text-gray-600" />
                       </button>
-                      <button className="p-1 hover:bg-red-100 rounded-lg transition-colors">
+                      <button type="button" className="p-1 hover:bg-red-100 rounded-lg transition-colors">
                         <Trash2 size={16} className="text-red-600" />
                       </button>
                     </div>
@@ -362,32 +265,14 @@ const UserManagement = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Showing 1 to {filteredUsers.length} of {users.length} users
-            </p>
-            <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                Previous
-              </button>
-              <button className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm">
-                1
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                2
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                3
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                Next
-              </button>
-            </div>
-          </div>
+          <p className="text-sm text-gray-600">
+            Showing {filteredUsers.length} of {users.length} users
+          </p>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
