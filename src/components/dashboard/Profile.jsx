@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar,
+import {
+  User,
+  Mail,
+  Phone,
   Edit2,
   Save,
   X,
@@ -16,17 +14,23 @@ import {
 
 const Profile = ({ user, setUser }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(user);
+  const [editedUser, setEditedUser] = useState(user || {});
   const [activeTab, setActiveTab] = useState('profile');
 
+  // Keep editedUser in sync when user (from API/localStorage) changes
+  React.useEffect(() => {
+    if (user) setEditedUser(user);
+  }, [user]);
+
   const handleSave = () => {
-    setUser(editedUser);
-    localStorage.setItem('user', JSON.stringify(editedUser));
+    const toSave = { ...editedUser };
+    setUser(toSave);
+    localStorage.setItem('user', JSON.stringify(toSave));
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditedUser(user);
+    setEditedUser(user || {});
     setIsEditing(false);
   };
 
@@ -113,8 +117,12 @@ const Profile = ({ user, setUser }) => {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-800">{user?.name}</h3>
-                  <p className="text-gray-500">Member since March 2024</p>
+                  <h3 className="text-xl font-semibold text-gray-800">{user?.name || '—'}</h3>
+                  {user?.createdAt && (
+                    <p className="text-gray-500">
+                      Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -165,7 +173,7 @@ const Profile = ({ user, setUser }) => {
                     <input
                       type="tel"
                       value={isEditing ? editedUser?.phone : user?.phone}
-                      onChange={(e) => setEditedUser({...editedUser, phone: e.target.value})}
+                      onChange={(e) => setEditedUser({ ...editedUser, phone: e.target.value })}
                       readOnly={!isEditing}
                       className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary ${
                         !isEditing ? 'bg-gray-50' : ''
@@ -174,42 +182,9 @@ const Profile = ({ user, setUser }) => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Birth
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="date"
-                      value={isEditing ? editedUser?.dob : user?.dob}
-                      onChange={(e) => setEditedUser({...editedUser, dob: e.target.value})}
-                      readOnly={!isEditing}
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary ${
-                        !isEditing ? 'bg-gray-50' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={isEditing ? editedUser?.address : user?.address}
-                      onChange={(e) => setEditedUser({...editedUser, address: e.target.value})}
-                      readOnly={!isEditing}
-                      placeholder="Enter your address"
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary ${
-                        !isEditing ? 'bg-gray-50' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
+                <p className="text-sm text-gray-500 md:col-span-2">
+                  Profile changes are saved locally. Account updates (e.g. password) are not yet available.
+                </p>
               </div>
             </div>
           )}
