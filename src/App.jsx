@@ -7,6 +7,7 @@ import BookingPage from './pages/dashboard/BookingPage';
 import HomePage from './pages/Homepage';
 import RoutesPage from './pages/dashboard/RoutesPage';
 import AdminDashboardPage from './pages/dashboard/AdminDashboardPage';
+import AdminLoginPage from './pages/dashboard/AdminLoginPage';
 
 function App() {
   return (
@@ -16,10 +17,13 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          {/* dashboard routes  */}
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/:view" element={<DashboardPage />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/routes" element={<RoutesPage />} />
+          {/* admin routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage/>} />
           <Route path="/admin/:view" element={<AdminDashboardPage />} />
         </Routes>

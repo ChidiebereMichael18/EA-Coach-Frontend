@@ -11,16 +11,17 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Shield
+  Shield,
+  UserCircle
 } from 'lucide-react';
 
 const AdminSidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout, admin }) => {
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, color: 'from-blue-500 to-blue-600' },
-    { id: 'users', label: 'User Management', icon: Users, color: 'from-green-500 to-green-600' },
+    { id: 'users', label: 'Users Management', icon: Users, color: 'from-green-500 to-green-600' },
     { id: 'buses', label: 'Bus Management', icon: Bus, color: 'from-orange-500 to-orange-600' },
     { id: 'bookings', label: 'Booking Management', icon: Calendar, color: 'from-purple-500 to-purple-600' },
-    // { id: 'routes', label: 'Route Management', icon: Map, color: 'from-pink-500 to-pink-600' },
+    { id: 'drivers', label: 'Drivers Management', icon: UserCircle, color: 'from-pink-500 to-pink-600' },
     { id: 'payments', label: 'Payments', icon: CreditCard, color: 'from-indigo-500 to-indigo-600' },
   ];
 

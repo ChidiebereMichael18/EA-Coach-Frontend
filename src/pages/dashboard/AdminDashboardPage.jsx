@@ -8,6 +8,7 @@ import BusManagement from '../../components/admin/BusManagement';
 import BookingManagement from '../../components/admin/BookingManagement';
 import RouteManagement from '../../components/admin/RouteManagement';
 import PaymentManagement from '../../components/admin/PaymentManagement';
+import DriverManagement from '../../components/admin/DriverManagement';
 
 const AdminDashboardPage = () => {
   const [currentView, setCurrentView] = useState('overview');
@@ -46,7 +47,7 @@ const AdminDashboardPage = () => {
     localStorage.removeItem('admin');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const renderView = () => {
@@ -61,6 +62,8 @@ const AdminDashboardPage = () => {
         return <BookingManagement />;
       case 'routes':
         return <RouteManagement />;
+      case 'drivers':
+        return <DriverManagement />;
       case 'payments':
         return <PaymentManagement />;
       default:
