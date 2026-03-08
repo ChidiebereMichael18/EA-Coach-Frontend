@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  User, Mail, Lock, Phone, ArrowRight, Bus, Eye, EyeOff, 
-  AlertCircle, CheckCircle, ChevronRight 
+import {
+  User, Mail, Lock, Phone, ArrowRight, Bus, Eye, EyeOff,
+  AlertCircle, CheckCircle, ChevronRight
 } from 'lucide-react';
+import { register } from '../../api/authApi';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -97,29 +98,39 @@ const SignupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (currentStep === 1) {
       handleNextStep();
       return;
     }
-    
+
     if (!validateStep2()) return;
-    
+
+    setErrors({});
     setIsLoading(true);
-    
-    try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful registration
-      console.log('Registration data:', formData);
-      
-      // Redirect to login or dashboard
-      navigate('/login?registered=true');
-    } catch (error) {
-      setErrors({ general: 'Registration failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
+
+    const result = await register({
+      name: formData.fullName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim(),
+      password: formData.password,
+    });
+
+    setIsLoading(false);
+
+    if (result.success) {
+      const { token, _id, name, email, phone, role } = result.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({ _id, name, email, phone, role }));
+      navigate(role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+      return;
+    }
+
+    const msg = result.errorMessage || 'Registration failed. Please try again.';
+    if (msg.toLowerCase().includes('already exists')) {
+      setErrors({ email: msg, general: msg });
+    } else {
+      setErrors({ general: msg });
     }
   };
 

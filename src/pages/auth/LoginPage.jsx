@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Bus, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { login } from '../../api/authApi';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -46,25 +47,30 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
+    setErrors({});
     setIsLoading(true);
-    
-    try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful login
-      console.log('Login attempt with:', formData);
-      
-      // Redirect to dashboard or home
-      navigate('/dashboard');
-    } catch (error) {
-      setErrors({ general: 'Invalid email or password' });
-    } finally {
-      setIsLoading(false);
+
+    const result = await login({
+      email: formData.email.trim(),
+      password: formData.password,
+    });
+
+    setIsLoading(false);
+
+    if (result.success) {
+      const { token, _id, name, email, phone, role } = result.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({ _id, name, email, phone, role }));
+      navigate(role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+      return;
     }
+
+    setErrors({
+      general: result.errorMessage || 'Invalid email or password. Please try again.',
+    });
   };
 
   return (
