@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { CreditCard, Smartphone, Landmark, Shield, AlertCircle } from 'lucide-react';
 
-const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentComplete }) => {
+const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentComplete, bookingError }) => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [localError, setLocalError] = useState(null);
   const [cardDetails, setCardDetails] = useState({
     number: '',
     expiry: '',
@@ -47,13 +48,16 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
   ];
 
   const handlePayment = async () => {
+    if (!paymentMethod) return;
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsProcessing(false);
-    onPaymentComplete(paymentMethod);
+    setLocalError(null);
+    try {
+      await onPaymentComplete(paymentMethod);
+    } catch (err) {
+      setLocalError(err?.message || 'Booking failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const formatCardNumber = (value) => {
@@ -79,6 +83,13 @@ const PaymentSection = ({ totalAmount, busDetails, seats, passengers, onPaymentC
       <div className="lg:col-span-2">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-2xl font-bold mb-6">Select Payment Method</h2>
+
+          {(bookingError || localError) && (
+            <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <AlertCircle size={18} className="flex-shrink-0" />
+              {bookingError || localError}
+            </div>
+          )}
 
           {/* Payment Method Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

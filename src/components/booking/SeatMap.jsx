@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Info, Wifi, Zap, Wind, Tv, Coffee } from 'lucide-react';
 
-const SeatMap = ({ busType, pricePerSeat, onSeatSelect, onConfirm, maxSelectable = 5 }) => {
+const SeatMap = ({ busType, pricePerSeat, onSeatSelect, onConfirm, maxSelectable = 5, bookedSeats: bookedSeatsProp = [] }) => {
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const bookedSeats = [3, 7, 14, 20, 27, 35, 41, 48]; // Mock booked seats
+  const bookedSeats = Array.isArray(bookedSeatsProp) ? bookedSeatsProp : [];
 
   // Build a proper 2-2 layout
   // Rows 1–13: 4 seats per row (A, B | aisle | C, D) = 52 seats

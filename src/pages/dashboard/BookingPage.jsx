@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Navbar from "../../components/layout/Navbar";
-import Footer from "../../components/layout/Footer";
 import SeatMap from "../../components/booking/SeatMap";
 import BookingSummary from "../../components/booking/BookingSummary";
 import PassengerForm from "../../components/booking/PassengerForm";
@@ -15,8 +13,49 @@ import {
   ArrowLeft,
   ChevronLeft,
   Bus,
+  AlertCircle,
 } from "lucide-react";
 import Header from "../../components/dashboard/Header";
+import { getBuses } from "../../api/busApi";
+import { createBooking } from "../../api/dashboardApi";
+
+const LOCATIONS = [
+  "Kampala", "Jinja", "Mbarara", "Gulu", "Lira", "Arua", "Masaka", "Mbale",
+  "Fort Portal", "Kabale", "Kasese", "Soroti", "Kitgum", "Hoima",
+  "Nairobi", "Kigali", "Dar es Salaam",
+];
+
+function mapBusFromApi(bus) {
+  const a = bus.amenities || {};
+  const amenities = [
+    a.wifi && "WiFi",
+    a.ac && "AC",
+    a.usbCharging && "USB",
+    a.entertainment && "Entertainment",
+    a.bulletproof && "Secure",
+  ].filter(Boolean);
+  return {
+    _id: bus._id,
+    id: bus._id,
+    company: bus.operator?.name || bus.busNumber || "—",
+    logo: "🚌",
+    type: bus.busType || "Standard",
+    departureTime: bus.route?.departureTime || "—",
+    arrivalTime: bus.route?.arrivalTime || "—",
+    duration: "—",
+    price: bus.route?.price ?? 0,
+    amenities,
+    availableSeats: bus.totalSeats ?? 53,
+    totalSeats: bus.totalSeats ?? 53,
+    busNumber: bus.busNumber || "—",
+  };
+}
+
+function mapPaymentMethodForApi(method) {
+  if (method === "card") return "card";
+  if (method === "mtn" || method === "airtel") return "mobile_money";
+  return "cash";
+}
 
 const BookingPage = () => {
   const navigate = useNavigate();
@@ -25,22 +64,42 @@ const BookingPage = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    from: "",
-    to: "",
-    date: "",
-  });
-  const [searchData, setSearchData] = useState({
     from: queryParams.get("from") || "Kampala",
     to: queryParams.get("to") || "Nairobi",
     date: queryParams.get("date") || new Date().toISOString().split("T")[0],
   });
+  const [searchData, setSearchData] = useState({
+    from: formData.from,
+    to: formData.to,
+    date: formData.date,
+  });
   const [availableBuses, setAvailableBuses] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   const [selectedBus, setSelectedBus] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [passengerDetails, setPassengerDetails] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [bookingComplete, setBookingComplete] = useState(false);
   const [bookingId, setBookingId] = useState("");
+  const [bookingError, setBookingError] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    try {
+      const u = localStorage.getItem("user");
+      if (u) setUser(JSON.parse(u));
+    } catch {
+      setUser(null);
+    }
+    setAuthChecked(true);
+  }, [navigate]);
 
   useEffect(() => {
     if (!selectedBus && currentStep > 1) {
@@ -48,124 +107,25 @@ const BookingPage = () => {
     }
   }, [selectedBus, currentStep]);
 
-  const ugandaLocations = [
-    "Kampala",
-    "Jinja",
-    "Mbarara",
-    "Gulu",
-    "Lira",
-    "Arua",
-    "Masaka",
-    "Mbale",
-    "Fort Portal",
-    "Kabale",
-    "Kasese",
-    "Soroti",
-    "Kitgum",
-    "Hoima",
-    "Nairobi",
-    "Kigali",
-    "Dar es Salaam",
-  ];
-
-  const destinations = [
-    "Kampala",
-    "Jinja",
-    "Mbarara",
-    "Gulu",
-    "Lira",
-    "Arua",
-    "Masaka",
-    "Mbale",
-    "Fort Portal",
-    "Kabale",
-    "Kasese",
-    "Soroti",
-    "Kitgum",
-    "Hoima",
-    "Nairobi",
-    "Kigali",
-    "Dar es Salaam",
-  ];
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle search
-    console.log("Searching:", formData);
-  };
-  // Mock data - replace with API calls
-  useEffect(() => {
-    // Simulate fetching available buses
-    const mockBuses = [
-      {
-        id: 1,
-        company: "Jaguar Executive",
-        logo: "🚌",
-        type: "Executive",
-        departureTime: "08:00",
-        arrivalTime: "18:00",
-        duration: "10h",
-        price: 150000,
-        amenities: ["WiFi", "AC", "USB", "Meals", "Entertainment"],
-        availableSeats: 45,
-        totalSeats: 53,
-        busNumber: "JX-001",
-      },
-      {
-        id: 2,
-        company: "Gateway Bus",
-        logo: "🚍",
-        type: "Luxury",
-        departureTime: "09:00",
-        arrivalTime: "19:00",
-        duration: "10h",
-        price: 120000,
-        amenities: ["WiFi", "AC", "USB", "Snacks"],
-        availableSeats: 38,
-        totalSeats: 53,
-        busNumber: "GW-002",
-      },
-      {
-        id: 3,
-        company: "Nile Star",
-        logo: "⭐",
-        type: "VIP",
-        departureTime: "07:00",
-        arrivalTime: "17:00",
-        duration: "10h",
-        price: 135000,
-        amenities: ["WiFi", "AC", "USB", "Entertainment", "Blanket"],
-        availableSeats: 42,
-        totalSeats: 53,
-        busNumber: "NS-003",
-      },
-      {
-        id: 4,
-        company: "Mash Poa",
-        logo: "⚡",
-        type: "Standard",
-        departureTime: "06:00",
-        arrivalTime: "16:00",
-        duration: "10h",
-        price: 100000,
-        amenities: ["AC", "USB"],
-        availableSeats: 50,
-        totalSeats: 53,
-        busNumber: "MP-004",
-      },
-    ];
-    setAvailableBuses(mockBuses);
-  }, [searchData]);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!searchData.to) {
-      alert("Please select a destination");
+    if (!formData.from || !formData.to) {
+      setSearchError("Please select from and destination.");
       return;
     }
-    // In real app: fetch from API using searchData
-    // Mock buses are already loaded via useEffect
-    console.log("Searching:", searchData);
+    setSearchData({ ...formData });
+    setSearchError(null);
+    setSearchLoading(true);
+    getBuses({ from: formData.from, to: formData.to })
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setAvailableBuses(res.data.map(mapBusFromApi));
+        } else {
+          setSearchError(res.errorMessage || "Failed to load buses.");
+        }
+      })
+      .catch(() => setSearchError("Failed to load buses."))
+      .finally(() => setSearchLoading(false));
   };
 
   const handleBusSelect = (bus) => {
@@ -188,36 +148,39 @@ const BookingPage = () => {
     setCurrentStep(4);
   };
 
-  const handlePaymentComplete = (method) => {
-    if (!selectedBus) return; // Safety guard
+  const handlePaymentComplete = async (method) => {
+    if (!selectedBus || !selectedSeats.length || !passengerDetails.length) return;
 
+    setBookingError(null);
     setPaymentMethod(method);
-    const newBookingId = `BK-${Date.now().toString().slice(-8)}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    setBookingId(newBookingId);
-    setBookingComplete(true);
 
-    const bookingData = {
-      id: newBookingId,
-      bookingId: newBookingId,
+    const passengers = passengerDetails.map((p, i) => ({
+      name: p.fullName?.trim() || p.name || "",
+      age: Number(p.age) || 0,
+      gender: p.gender || "Other",
+      seatNumber: selectedSeats[i]?.number ?? i + 1,
+    }));
+
+    const totalAmount = selectedSeats.length * (selectedBus.price || 0);
+    const result = await createBooking({
+      busId: selectedBus._id,
       from: searchData.from,
       to: searchData.to,
-      date: searchData.date,
-      time: selectedBus.departureTime,
-      company: selectedBus.company,
-      busNumber: selectedBus.busNumber,
-      seats: selectedSeats,
-      amount: selectedSeats.length * selectedBus.price,
-      price: selectedBus.price,
-      status: "confirmed",
-      bookingDate: new Date().toISOString(),
-      passengers: passengerDetails,
-      paymentMethod: method,
-    };
+      departureDate: searchData.date,
+      departureTime: selectedBus.departureTime,
+      passengers,
+      totalSeats: selectedSeats.length,
+      totalAmount,
+      paymentMethod: mapPaymentMethodForApi(method),
+    });
 
-    const existingBookings =
-      JSON.parse(localStorage.getItem("userBookings")) || [];
-    existingBookings.push(bookingData);
-    localStorage.setItem("userBookings", JSON.stringify(existingBookings));
+    if (result.success && result.data) {
+      setBookingId(result.data.bookingId || result.data._id);
+      setBookingComplete(true);
+    } else {
+      setBookingError(result.errorMessage || "Booking failed. Please try again.");
+      throw new Error(result.errorMessage);
+    }
   };
 
   const steps = [
@@ -227,13 +190,21 @@ const BookingPage = () => {
     { number: 4, name: "Payment", icon: "💳" },
   ];
 
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header user={user} />
 
       <button
         onClick={() => navigate("/dashboard")}
-        className="mx-4 p-1 text-blue-600 hover:text-blue-800 cursor-pointer  hover:bg-blue-50 rounded-full transition-colors"
+        className="mx-4 p-1 text-blue-600 hover:text-blue-800 cursor-pointer hover:bg-blue-50 rounded-full transition-colors"
       >
         <ArrowLeft size={20} />
       </button>
@@ -247,22 +218,19 @@ const BookingPage = () => {
                 <React.Fragment key={step.number}>
                   <div className="flex items-center">
                     <div
-                      className={`
-                      w-10 h-10 rounded-full flex items-center justify-center font-semibold
-                      ${
-                        currentStep > step.number
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold
+                        ${currentStep > step.number
                           ? "bg-green-500 text-white"
                           : currentStep === step.number
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-gray-600"
-                      }
-                    `}
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-600"
+                        }`}
                     >
                       {currentStep > step.number ? "✓" : step.number}
                     </div>
                     <span
                       className={`ml-2 hidden sm:block text-sm font-medium
-                      ${currentStep >= step.number ? "text-gray-900" : "text-gray-400"}`}
+                        ${currentStep >= step.number ? "text-gray-900" : "text-gray-400"}`}
                     >
                       {step.name}
                     </span>
@@ -270,7 +238,7 @@ const BookingPage = () => {
                   {index < steps.length - 1 && (
                     <div
                       className={`w-12 h-0.5 mx-2
-                      ${currentStep > step.number + 1 ? "bg-green-500" : "bg-gray-300"}`}
+                        ${currentStep > step.number + 1 ? "bg-green-500" : "bg-gray-300"}`}
                     />
                   )}
                 </React.Fragment>
@@ -317,24 +285,17 @@ const BookingPage = () => {
                       {/* From Field */}
                       <div className="relative">
                         <label className="block text-sm font-bold text-gray-800 mb-3">
-                          <MapPin
-                            className="inline-block mr-2 text-blue-600"
-                            size={18}
-                          />
+                          <MapPin className="inline-block mr-2 text-blue-600" size={18} />
                           From
                         </label>
                         <select
                           value={formData.from}
-                          onChange={(e) =>
-                            setFormData({ ...formData, from: e.target.value })
-                          }
+                          onChange={(e) => setFormData({ ...formData, from: e.target.value })}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-gray-800 font-medium transition-all"
                         >
                           <option value="">Select departure city</option>
-                          {ugandaLocations.map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
+                          {LOCATIONS.map((loc) => (
+                            <option key={loc} value={loc}>{loc}</option>
                           ))}
                         </select>
                       </div>
@@ -342,24 +303,17 @@ const BookingPage = () => {
                       {/* To Field */}
                       <div className="relative">
                         <label className="block text-sm font-bold text-gray-800 mb-3">
-                          <MapPin
-                            className="inline-block mr-2 text-orange-600"
-                            size={18}
-                          />
+                          <MapPin className="inline-block mr-2 text-orange-600" size={18} />
                           To
                         </label>
                         <select
                           value={formData.to}
-                          onChange={(e) =>
-                            setFormData({ ...formData, to: e.target.value })
-                          }
+                          onChange={(e) => setFormData({ ...formData, to: e.target.value })}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg appearance-none bg-white cursor-pointer focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 text-gray-800 font-medium transition-all"
                         >
                           <option value="">Select destination</option>
-                          {destinations.map((dest) => (
-                            <option key={dest} value={dest}>
-                              {dest}
-                            </option>
+                          {LOCATIONS.map((dest) => (
+                            <option key={dest} value={dest}>{dest}</option>
                           ))}
                         </select>
                       </div>
@@ -367,18 +321,13 @@ const BookingPage = () => {
                       {/* Date Field */}
                       <div className="relative">
                         <label className="block text-sm font-bold text-gray-800 mb-3">
-                          <Calendar
-                            className="inline-block mr-2 text-green-600"
-                            size={18}
-                          />
+                          <Calendar className="inline-block mr-2 text-green-600" size={18} />
                           Date
                         </label>
                         <input
                           type="date"
                           value={formData.date}
-                          onChange={(e) =>
-                            setFormData({ ...formData, date: e.target.value })
-                          }
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                           min={new Date().toISOString().split("T")[0]}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 text-gray-800 font-medium transition-all"
                         />
@@ -391,144 +340,142 @@ const BookingPage = () => {
                       >
                         <Search size={20} />
                         <span>Search</span>
-                        <ArrowRight
-                          size={20}
-                          className="group-hover:translate-x-1 transition-transform"
-                        />
+                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     </div>
                   </form>
                 </div>
 
+                {searchError && (
+                  <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                    <AlertCircle size={18} className="flex-shrink-0" />
+                    {searchError}
+                  </div>
+                )}
+
                 {/* Available Buses */}
-                {!searchData.to ? (
+                {!searchData.from || !searchData.to ? (
                   <div className="bg-white rounded-xl shadow-md p-12 text-center">
                     <div className="text-6xl mb-4">🚌</div>
                     <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       Where are you headed?
                     </h3>
                     <p className="text-gray-500">
-                      Select a destination above to see available buses.
+                      Select from and destination, then search to see available buses.
                     </p>
+                  </div>
+                ) : searchLoading ? (
+                  <div className="bg-white rounded-xl shadow-md p-12 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-3 text-gray-600">Loading buses...</span>
                   </div>
                 ) : (
                   <div>
                     <h2 className="text-2xl font-bold mb-6">Available Buses</h2>
                     <div className="space-y-4">
-                      {availableBuses.map((bus) => (
-                        <div
-                          key={bus.id}
-                          className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
-                        >
-                          <div className="p-6">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                              {/* Bus Info */}
-                              <div className="flex items-start space-x-4">
-                                <div className="bg-blue-500/10 p-4 rounded-xl text-3xl">
-                                  {bus.logo}
+                      {availableBuses.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
+                          No buses found for this route. Try different cities or dates.
+                        </div>
+                      ) : (
+                        availableBuses.map((bus) => (
+                          <div
+                            key={bus.id}
+                            className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                          >
+                            <div className="p-6">
+                              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                                {/* Bus Info */}
+                                <div className="flex items-start space-x-4">
+                                  <div className="bg-blue-500/10 p-4 rounded-xl text-3xl">
+                                    {bus.logo}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center space-x-2">
+                                      <h3 className="text-xl font-bold text-gray-800">
+                                        {bus.company}
+                                      </h3>
+                                      <span className="px-3 py-1 bg-blue-500/10 rounded-full text-xs font-semibold">
+                                        {bus.type}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      Bus No: {bus.busNumber}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                      {bus.amenities.map((amenity, index) => (
+                                        <span
+                                          key={index}
+                                          className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                                        >
+                                          {amenity}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
+
+                                {/* Time & Price */}
+                                <div className="mt-4 md:mt-0 flex flex-col md:items-end">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="text-center">
+                                      <p className="text-sm text-gray-500">Departure</p>
+                                      <p className="text-xl font-bold text-gray-800">
+                                        {bus.departureTime}
+                                      </p>
+                                    </div>
+                                    <div className="text-center">
+                                      <p className="text-sm text-gray-500">Arrival</p>
+                                      <p className="text-xl font-bold text-gray-800">
+                                        {bus.arrivalTime}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-gray-500 mt-2">{bus.duration}</p>
+                                  <div className="flex items-center space-x-4 mt-3">
+                                    <div className="text-right">
+                                      <p className="text-sm text-gray-500">Price per seat</p>
+                                      <p className="text-2xl font-bold text-blue-500">
+                                        UGX {bus.price.toLocaleString()}
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={() => handleBusSelect(bus)}
+                                      className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+                                    >
+                                      Select Bus
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Seat Availability */}
+                              <div className="mt-4 pt-4 border-t border-gray-100">
+                                <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-2">
-                                    <h3 className="text-xl font-bold text-gray-800">
-                                      {bus.company}
-                                    </h3>
-                                    <span className="px-3 py-1 bg-blue-500/10 text-bg-blue-500 rounded-full text-xs font-semibold">
-                                      {bus.type}
+                                    <span className="text-sm text-gray-600">Available Seats:</span>
+                                    <span className="font-semibold text-green-600">
+                                      {bus.availableSeats}/{bus.totalSeats}
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-500 mt-1">
-                                    Bus No: {bus.busNumber}
-                                  </p>
-
-                                  {/* Amenities */}
-                                  <div className="flex flex-wrap gap-2 mt-3">
-                                    {bus.amenities.map((amenity, index) => (
-                                      <span
-                                        key={index}
-                                        className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-                                      >
-                                        {amenity}
-                                      </span>
+                                  <div className="flex items-center space-x-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <div
+                                        key={i}
+                                        className={`w-2 h-2 rounded-full ${
+                                          i < Math.ceil((bus.availableSeats / bus.totalSeats) * 5)
+                                            ? "bg-green-500"
+                                            : "bg-gray-300"
+                                        }`}
+                                      />
                                     ))}
                                   </div>
                                 </div>
                               </div>
-
-                              {/* Time & Price */}
-                              <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                                <div className="flex items-center space-x-4">
-                                  <div className="text-center">
-                                    <p className="text-sm text-gray-500">
-                                      Departure
-                                    </p>
-                                    <p className="text-xl font-bold text-gray-800">
-                                      {bus.departureTime}
-                                    </p>
-                                  </div>
-                                  <div className="text-center">
-                                    <p className="text-sm text-gray-500">
-                                      Arrival
-                                    </p>
-                                    <p className="text-xl font-bold text-gray-800">
-                                      {bus.arrivalTime}
-                                    </p>
-                                  </div>
-                                </div>
-                                <p className="text-sm text-gray-500 mt-2">
-                                  {bus.duration}
-                                </p>
-                                <div className="flex items-center space-x-4 mt-3">
-                                  <div className="text-right">
-                                    <p className="text-sm text-gray-500">
-                                      Price per seat
-                                    </p>
-                                    <p className="text-2xl font-bold text-blue-500">
-                                      UGX {bus.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                  <button
-                                    onClick={() => handleBusSelect(bus)}
-                                    className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
-                                  >
-                                    Select Bus
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Seat Availability */}
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-sm text-gray-600">
-                                    Available Seats:
-                                  </span>
-                                  <span className="font-semibold text-green-600">
-                                    {bus.availableSeats}/{bus.totalSeats}
-                                  </span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <div
-                                      key={i}
-                                      className={`w-2 h-2 rounded-full ${
-                                        i <
-                                        Math.ceil(
-                                          (bus.availableSeats /
-                                            bus.totalSeats) *
-                                            5,
-                                        )
-                                          ? "bg-green-500"
-                                          : "bg-gray-300"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
@@ -548,21 +495,17 @@ const BookingPage = () => {
 
                 <div className="bg-white rounded-xl shadow-lg p-6">
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold mb-2">
-                      Select Your Seats
-                    </h2>
+                    <h2 className="text-2xl font-bold mb-2">Select Your Seats</h2>
                     <p className="text-gray-600">
-                      {selectedBus.company} • {selectedBus.departureTime} •{" "}
-                      {searchData.date}
+                      {selectedBus.company} • {selectedBus.departureTime} • {searchData.date}
                     </p>
                   </div>
-
                   <SeatMap
                     busType={selectedBus.type}
                     pricePerSeat={selectedBus.price}
                     onSeatSelect={handleSeatSelect}
                     onConfirm={handleSeatConfirm}
-                    maxSelectable={5} // Maximum seats per booking
+                    maxSelectable={5}
                   />
                 </div>
               </div>
@@ -580,7 +523,6 @@ const BookingPage = () => {
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Passenger Form */}
                   <div className="lg:col-span-2">
                     <PassengerForm
                       seatCount={selectedSeats.length}
@@ -589,8 +531,6 @@ const BookingPage = () => {
                       onSubmit={handlePassengerSubmit}
                     />
                   </div>
-
-                  {/* Booking Summary Sidebar */}
                   <div className="lg:col-span-1">
                     <BookingSummary
                       bus={selectedBus}
@@ -621,14 +561,13 @@ const BookingPage = () => {
                   seats={selectedSeats}
                   passengers={passengerDetails}
                   onPaymentComplete={handlePaymentComplete}
+                  bookingError={bookingError}
                 />
               </div>
             )}
           </>
         )}
       </main>
-
-      {/* <Footer /> */}
     </div>
   );
 };
