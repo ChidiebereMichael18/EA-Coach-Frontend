@@ -67,7 +67,7 @@ const AdminHeader = ({ admin, toggleSidebar, isSidebarOpen }) => {
                   ))}
                 </div>
                 <div className="p-3 border-t border-gray-200">
-                  <button className="text-sm text-primary hover:text-blue-600 w-full text-center">
+                  <button className="text-sm text-blue-500 hover:text-blue-600 w-full text-center">
                     View All Notifications
                   </button>
                 </div>
@@ -81,7 +81,7 @@ const AdminHeader = ({ admin, toggleSidebar, isSidebarOpen }) => {
               onClick={() => setShowProfile(!showProfile)}
               className="flex items-center space-x-3 hover:bg-gray-100 p-2 rounded-lg transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-secondary flex items-center justify-center text-white font-semibold text-sm">
                 {admin?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="hidden md:block text-left">

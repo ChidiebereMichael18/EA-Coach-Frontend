@@ -235,7 +235,7 @@ const PaymentManagement = () => {
               placeholder="Search by transaction ID, booking ID, or customer..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -243,7 +243,7 @@ const PaymentManagement = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
@@ -253,7 +253,7 @@ const PaymentManagement = () => {
             <select
               value={filterMethod}
               onChange={(e) => setFilterMethod(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Methods</option>
               <option value="MTN MoMo">MTN MoMo</option>
@@ -360,7 +360,7 @@ const PaymentManagement = () => {
               <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
                 Previous
               </button>
-              <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
+              <button className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm">
                 1
               </button>
               <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">

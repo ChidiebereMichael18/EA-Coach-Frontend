@@ -250,7 +250,7 @@ const DashboardOverview = () => {
               </div>
             ))}
           </div>
-          <button className="mt-4 text-sm text-primary hover:text-blue-600 font-semibold w-full text-center">
+          <button className="mt-4 text-sm text-blue-500 hover:text-blue-600 font-semibold w-full text-center">
             View All Activity
           </button>
         </div>
@@ -290,19 +290,19 @@ const DashboardOverview = () => {
             <h3 className="font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">
               <button className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                <Users className="text-primary mb-2" size={20} />
+                <Users className="text-blue-500 mb-2" size={20} />
                 <p className="text-sm font-medium">Add New User</p>
               </button>
               <button className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                <Bus className="text-primary mb-2" size={20} />
+                <Bus className="text-blue-500 mb-2" size={20} />
                 <p className="text-sm font-medium">Add New Bus</p>
               </button>
               <button className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                <Calendar className="text-primary mb-2" size={20} />
+                <Calendar className="text-blue-500 mb-2" size={20} />
                 <p className="text-sm font-medium">Create Booking</p>
               </button>
               <button className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                <Navigation className="text-primary mb-2" size={20} />
+                <Navigation className="text-blue-500 mb-2" size={20} />
                 <p className="text-sm font-medium">Add New Route</p>
               </button>
             </div>

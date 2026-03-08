@@ -54,7 +54,7 @@ const UserManagement = () => {
       name: 'Robert Johnson',
       email: 'robert@example.com',
       phone: '+256 700 345 678',
-      role: 'admin',
+      role: 'user',
       status: 'active',
       joined: '2023-11-10',
       bookings: 45,
@@ -134,7 +134,7 @@ const UserManagement = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">User Management</h1>
           <p className="text-gray-600">Manage users, roles, and permissions</p>
         </div>
-        <button className="mt-4 sm:mt-0 bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+        <button className="mt-4 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
           <UserPlus size={18} />
           <span>Add New User</span>
         </button>
@@ -198,7 +198,7 @@ const UserManagement = () => {
               placeholder="Search users by name, email, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -206,7 +206,7 @@ const UserManagement = () => {
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Roles</option>
               <option value="user">Users</option>
@@ -215,7 +215,7 @@ const UserManagement = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -227,7 +227,7 @@ const UserManagement = () => {
 
         {/* Bulk Actions */}
         {selectedUsers.length > 0 && (
-          <div className="mt-4 flex items-center justify-between p-2 bg-primary/5 rounded-lg">
+          <div className="mt-4 flex items-center justify-between p-2 bg-blue-500/5 rounded-lg">
             <span className="text-sm text-gray-600">
               <span className="font-semibold">{selectedUsers.length}</span> users selected
             </span>
@@ -257,7 +257,7 @@ const UserManagement = () => {
                     type="checkbox"
                     checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -294,12 +294,12 @@ const UserManagement = () => {
                       type="checkbox"
                       checked={selectedUsers.includes(user.id)}
                       onChange={() => handleSelectUser(user.id)}
-                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-secondary flex items-center justify-center text-white font-semibold text-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="ml-3">
@@ -372,7 +372,7 @@ const UserManagement = () => {
               <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
                 Previous
               </button>
-              <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
+              <button className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm">
                 1
               </button>
               <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">

@@ -45,7 +45,7 @@ const AdminSidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-700">
           <div className="flex items-center space-x-2">
-            <Shield className="w-8 h-8 text-primary" />
+            <Shield className="w-8 h-8 text-blue-500" />
             <div>
               <span className="text-xl font-bold text-white">EA Coach</span>
               <span className="block text-xs text-gray-400">Admin Panel</span>
@@ -62,7 +62,7 @@ const AdminSidebar = ({ currentView, setCurrentView, isOpen, setIsOpen, onLogout
         {/* Admin Info */}
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-secondary flex items-center justify-center text-white font-bold">
               {admin?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
