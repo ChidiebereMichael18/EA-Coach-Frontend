@@ -466,7 +466,7 @@ const DriverManagement = () => {
                   <p className="text-xs text-gray-500">Experience</p>
                   <p className="font-bold text-gray-800">{driver.experience} yrs</p>
                 </div>
-                <div className="text-center">
+                {/* <div className="text-center">
                   <p className="text-xs text-gray-500">Rating</p>
                   <div className="flex items-center justify-center">
                     <Star size={14} className="text-yellow-500 fill-current" />
@@ -476,7 +476,7 @@ const DriverManagement = () => {
                 <div className="text-center">
                   <p className="text-xs text-gray-500">Trips</p>
                   <p className="font-bold text-gray-800">{driver.totalTrips}</p>
-                </div>
+                </div> */}
               </div>
 
               {/* Assigned Bus */}

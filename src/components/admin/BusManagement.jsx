@@ -69,15 +69,7 @@ const BusManagement = () => {
 const fetchBuses = async () => {
   setIsLoading(true);
   try {
-    const raw = await getBuses();
-    const data = raw.map(bus => ({
-      ...bus,
-      amenities: Array.isArray(bus.amenities)
-        ? bus.amenities
-        : bus.amenities && typeof bus.amenities === 'object'
-        ? Object.entries(bus.amenities).filter(([_, v]) => v).map(([k]) => k)
-        : []
-    }));
+    const data = await getBuses();
     setBuses(data);
   } catch (err) {
     console.error("Error fetching buses:", err);
@@ -345,12 +337,12 @@ const fetchBuses = async () => {
 
                 {/* Amenities */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {bus.amenities && Object.entries(bus.amenities)
-                    .filter(([key, value]) => value === true)
-                    .map(([amenity, index]) => (
+                  {bus.amenities && Object.keys(bus.amenities)
+                    .filter(key => bus.amenities[key] === true)
+                    .map((amenity) => (
                       <AmenityIcon key={amenity} amenity={amenity} active={true} />
                   ))}
-                  {(!bus.amenities || Object.values(bus.amenities).every(v => v === false)) && (
+                  {(!bus.amenities || !Object.values(bus.amenities).some(v => v === true)) && (
                     <span className="text-xs text-gray-400">No amenities listed</span>
                   )}
                 </div>
@@ -379,7 +371,7 @@ const fetchBuses = async () => {
                 </div>
 
                 {/* Maintenance Info */}
-                <div className="mt-3 pt-3 border-t border-gray-100">
+                {/* <div className="mt-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-2">
                       <Clock size={12} className="text-gray-400" />
@@ -390,7 +382,7 @@ const fetchBuses = async () => {
                       <span className="text-orange-600 font-medium">Next: {bus.nextMaintenance}</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Actions */}
                 <div className="mt-4 flex items-center justify-end space-x-2">
@@ -400,9 +392,9 @@ const fetchBuses = async () => {
                   >
                     <Edit2 size={16} className="text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  {/* <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <Copy size={16} className="text-gray-600" />
-                  </button>
+                  </button> */}
                   <button 
                     onClick={() => handleDelete(bus._id || bus.id)}
                     className="p-2 hover:bg-red-100 rounded-lg transition-colors"

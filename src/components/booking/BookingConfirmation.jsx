@@ -1,27 +1,50 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { CheckCircle, Download, Printer, Share2, Calendar, MapPin, Clock, Users, CreditCard } from 'lucide-react';
 
 const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
-  const handlePrint = () => {
-    window.print();
+  const ticketRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    const printElement = ticketRef.current;
+    if (!printElement) return;
+    
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(printElement, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`EACoach-Ticket-${bookingId}.pdf`);
+    } catch (err) {
+      console.error("Failed to download ticket", err);
+      alert("Failed to generate PDF ticket. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const handleDownload = () => {
-    // In a real app, this would generate a PDF
-    alert('Download ticket feature coming soon!');
-  };
-
-  const handleShare = () => {
+  const handleShare = async () => {
+    const shareText = `My EA Coach bus ticket from ${bookingData?.from} to ${bookingData?.to} is confirmed! Booking ID: ${bookingId}`;
     if (navigator.share) {
-      navigator.share({
-        title: 'EA Coach Booking Confirmation',
-        text: `Your booking ${bookingId} has been confirmed!`,
-        url: window.location.href,
-      });
+      try {
+        await navigator.share({
+          title: 'EA Coach Booking Confirmation',
+          text: shareText,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log("Share canceled", err);
+      }
     } else {
-      navigator.clipboard.writeText(`Booking ID: ${bookingId}`);
-      alert('Booking ID copied to clipboard!');
+      navigator.clipboard.writeText(shareText);
+      alert('Booking Details copied to clipboard!');
     }
   };
 
@@ -39,9 +62,9 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
       </div>
 
       {/* Booking Details Card */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+      <div ref={ticketRef} className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-bg-blue-500 to-secondary p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-90">Booking ID</p>
@@ -65,7 +88,7 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
               <div className="relative">
                 <div className="border-t-2 border-dashed border-gray-300"></div>
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2">
-                  <MapPin className="text-bg-blue-500" size={18} />
+                  <MapPin className="text-blue-500" size={18} />
                 </div>
               </div>
             </div>
@@ -78,22 +101,22 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
           {/* Details Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 p-3 rounded-lg">
-              <Calendar className="text-bg-blue-500 mb-1" size={18} />
+              <Calendar className="text-blue-500 mb-1" size={18} />
               <p className="text-xs text-gray-500">Date</p>
               <p className="font-semibold">{new Date(bookingData.date).toLocaleDateString()}</p>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
-              <Clock className="text-bg-blue-500 mb-1" size={18} />
+              <Clock className="text-blue-500 mb-1" size={18} />
               <p className="text-xs text-gray-500">Time</p>
               <p className="font-semibold">{bookingData.time}</p>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
-              <Users className="text-bg-blue-500 mb-1" size={18} />
+              <Users className="text-blue-500 mb-1" size={18} />
               <p className="text-xs text-gray-500">Seats</p>
               <p className="font-semibold">{bookingData.seats.map(s => s.number).join(', ')}</p>
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
-              <CreditCard className="text-bg-blue-500 mb-1" size={18} />
+              <CreditCard className="text-blue-500 mb-1" size={18} />
               <p className="text-xs text-gray-500">Total</p>
               <p className="font-semibold">UGX {bookingData.amount.toLocaleString()}</p>
             </div>
@@ -128,24 +151,27 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
       <div className="flex flex-wrap gap-4 justify-center mb-8">
         <button
           onClick={handleDownload}
-          className="flex items-center space-x-2 bg-bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+          disabled={isDownloading}
+          className="flex items-center space-x-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
         >
-          <Download size={18} />
-          <span>Download Ticket</span>
-        </button>
-        <button
-          onClick={handlePrint}
-          className="flex items-center bg-blue-400 text-white space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          <Printer size={18} />
-          <span>Print Ticket</span>
+          {isDownloading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Generating PDF...</span>
+            </>
+          ) : (
+            <>
+              <Download size={18} />
+              <span>Download Ticket</span>
+            </>
+          )}
         </button>
         <button
           onClick={handleShare}
-          className="flex items-center bg-green-400 text-white space-x-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+          className="flex items-center bg-green-500 text-white space-x-2 px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
         >
           <Share2 size={18} />
-          <span>Share</span>
+          <span>Share Ticket</span>
         </button>
       </div>
 
@@ -171,7 +197,7 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
         <ul className="text-sm text-yellow-700 space-y-1">
           <li>• Please arrive at the terminal at least 1 hour before departure</li>
           <li>• Carry a valid ID matching the name on the ticket</li>
-          <li>• You can cancel or modify your booking up to 2 hours before departure</li>
+          {/* <li>• You can cancel or modify your booking up to 2 hours before departure</li> */}
           <li>• For any assistance, contact our 24/7 support team</li>
         </ul>
       </div>
