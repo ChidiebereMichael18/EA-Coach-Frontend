@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getBuses, createBus, deleteBus } from '../../services/adminService';
+import { getBuses, createBus, updateBus, deleteBus } from '../../services/adminService';
 import {
   Bus, 
   Search, 
@@ -25,10 +25,41 @@ const BusManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [selectedBus, setSelectedBus] = useState(null);
   const [buses, setBuses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const initialFormState = {
+    busNumber: '',
+    busType: 'Standard',
+    totalSeats: 53,
+    amenities: {
+      wifi: false,
+      ac: false,
+      usbCharging: false,
+      entertainment: false,
+      bulletproof: false
+    },
+    route: {
+      from: '',
+      to: '',
+      departureTime: '',
+      arrivalTime: '',
+      distance: '',
+      price: ''
+    },
+    operator: {
+      name: '',
+      contact: '',
+      logo: ''
+    },
+    status: 'active'
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   // Fetch buses on component mount
   useEffect(() => {
@@ -60,7 +91,7 @@ const fetchBuses = async () => {
     if (window.confirm("Are you sure you want to delete this bus?")) {
       try {
         await deleteBus(id);
-        setBuses(buses.filter(b => b._id !== id));
+        setBuses(buses.filter(b => (b._id || b.id) !== id));
       } catch (err) {
         console.error("Error deleting bus:", err);
         alert("Failed to delete bus.");
@@ -68,11 +99,65 @@ const fetchBuses = async () => {
     }
   };
 
+  const openEditModal = (bus) => {
+    setFormData({
+      busNumber: bus.busNumber || '',
+      busType: bus.busType || 'Standard',
+      totalSeats: bus.totalSeats || 53,
+      amenities: {
+        wifi: bus.amenities?.wifi || false,
+        ac: bus.amenities?.ac || false,
+        usbCharging: bus.amenities?.usbCharging || false,
+        entertainment: bus.amenities?.entertainment || false,
+        bulletproof: bus.amenities?.bulletproof || false
+      },
+      route: {
+        from: bus.route?.from || '',
+        to: bus.route?.to || '',
+        departureTime: bus.route?.departureTime || '',
+        arrivalTime: bus.route?.arrivalTime || '',
+        distance: bus.route?.distance || '',
+        price: bus.route?.price || ''
+      },
+      operator: {
+        name: bus.operator?.name || '',
+        contact: bus.operator?.contact || '',
+        logo: bus.operator?.logo || ''
+      },
+      status: bus.status || 'active'
+    });
+    setSelectedBus(bus);
+    setIsEditing(true);
+    setShowAddModal(true);
+  };
 
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      if (isEditing && selectedBus) {
+        const updatedBus = await updateBus(selectedBus._id || selectedBus.id, formData);
+        setBuses(buses.map(b => (b._id || b.id) === (updatedBus._id || updatedBus.id) ? updatedBus : b));
+      } else {
+        const newBus = await createBus(formData);
+        setBuses([...buses, newBus]);
+      }
+      setShowAddModal(false);
+      setIsEditing(false);
+      setSelectedBus(null);
+      setFormData(initialFormState);
+    } catch (err) {
+      console.error("Error saving bus:", err);
+      alert(err.response?.data?.message || "Failed to save bus.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const filteredBuses = buses.filter(bus => {
-    const matchesSearch = bus.busNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         bus.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const busNumStr = bus.busNumber || '';
+    const operatorStr = bus.operator?.name || '';
+    const matchesSearch = busNumStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         operatorStr.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || bus.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -92,11 +177,9 @@ const fetchBuses = async () => {
     switch(amenity) {
       case 'wifi': return <Wifi size={14} className="text-blue-500" title="WiFi" />;
       case 'ac': return <Wind size={14} className="text-blue-500" title="AC" />;
-      case 'usb': return <Zap size={14} className="text-blue-500" title="USB Charging" />;
+      case 'usbCharging': case 'usb': return <Zap size={14} className="text-blue-500" title="USB Charging" />;
       case 'entertainment': return <Tv size={14} className="text-blue-500" title="Entertainment" />;
       case 'bulletproof': return <Shield size={14} className="text-blue-500" title="Bulletproof" />;
-      case 'snacks': return <Coffee size={14} className="text-blue-500" title="Snacks" />;
-      case 'blanket': return <Coffee size={14} className="text-blue-500" title="Blanket" />;
       default: return null;
     }
   };
@@ -110,7 +193,11 @@ const fetchBuses = async () => {
           <p className="text-gray-600">Manage your fleet of buses, schedules, and maintenance</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setFormData(initialFormState);
+            setIsEditing(false);
+            setShowAddModal(true);
+          }}
           className="mt-4 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
         >
           <Plus size={18} />
@@ -237,7 +324,7 @@ const fetchBuses = async () => {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="text-lg font-bold text-gray-800">{bus.busNumber}</h3>
-                    <p className="text-sm text-gray-500">{bus.company}</p>
+                    <p className="text-sm text-gray-500">{bus.operator?.name || 'Unknown Operator'}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(bus.status)}`}>
                     {bus.status}
@@ -248,7 +335,7 @@ const fetchBuses = async () => {
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div className="flex items-center space-x-1 text-sm text-gray-600">
                     <Bus size={14} />
-                    <span>{bus.type}</span>
+                    <span>{bus.busType}</span>
                   </div>
                   <div className="flex items-center space-x-1 text-sm text-gray-600">
                     <Users size={14} />
@@ -269,13 +356,13 @@ const fetchBuses = async () => {
                 </div>
                 {/* Routes */}
                 <div className="mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Assigned Routes:</p>
+                  <p className="text-xs text-gray-500 mb-1">Assigned Route:</p>
                   <div className="flex flex-wrap gap-1">
-                    {bus.routes && bus.routes.length > 0 ? bus.routes.map((route, index) => (
-                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                        {route.from || route} - {route.to || ''}
+                    {bus.route && bus.route.from && bus.route.to ? (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                        {bus.route.from} - {bus.route.to}
                       </span>
-                    )) : (
+                    ) : (
                       <span className="text-xs text-gray-400">Unassigned</span>
                     )}
                   </div>
@@ -286,7 +373,7 @@ const fetchBuses = async () => {
                   <div className="flex items-center justify-between text-sm">
                     <div>
                       <p className="text-xs text-gray-500">Driver</p>
-                      <p className="font-medium">{bus.driver}</p>
+                      <p className="font-medium">{bus.driver?.name || 'Unassigned'}</p>
                     </div>
                   </div>
                 </div>
@@ -307,7 +394,10 @@ const fetchBuses = async () => {
 
                 {/* Actions */}
                 <div className="mt-4 flex items-center justify-end space-x-2">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => openEditModal(bus)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
                     <Edit2 size={16} className="text-gray-600" />
                   </button>
                   <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -325,6 +415,218 @@ const fetchBuses = async () => {
           </div>
         ))}
       </div>
+      )}
+
+      {/* Add/Edit Bus Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {isEditing ? 'Edit Bus' : 'Add New Bus'}
+                </h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {/* Core Bus Info */}
+                <div>
+                  <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-gray-700">Core Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bus Number *</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.busNumber}
+                        onChange={(e) => setFormData({ ...formData, busNumber: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bus Type *</label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg"
+                        value={formData.busType}
+                        onChange={(e) => setFormData({ ...formData, busType: e.target.value })}
+                      >
+                        <option value="Standard">Standard</option>
+                        <option value="Luxury">Luxury</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Executive">Executive</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Total Seats *</label>
+                      <input 
+                        type="number" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.totalSeats}
+                        onChange={(e) => setFormData({ ...formData, totalSeats: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select 
+                        className="w-full px-4 py-2 border rounded-lg"
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      >
+                        <option value="active">Active</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Operator Info */}
+                <div>
+                  <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-gray-700">Operator Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Operator Name *</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.operator.name}
+                        onChange={(e) => setFormData({ ...formData, operator: { ...formData.operator, name: e.target.value } })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Operator Contact</label>
+                      <input 
+                        type="text" 
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.operator.contact}
+                        onChange={(e) => setFormData({ ...formData, operator: { ...formData.operator, contact: e.target.value } })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Route Info */}
+                <div>
+                  <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-gray-700">Assigned Route</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">From *</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.from}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, from: e.target.value } })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">To *</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.to}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, to: e.target.value } })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Departure Time *</label>
+                      <input 
+                        type="time" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.departureTime}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, departureTime: e.target.value } })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Arrival Time *</label>
+                      <input 
+                        type="time" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.arrivalTime}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, arrivalTime: e.target.value } })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Distance (e.g. 300km)</label>
+                      <input 
+                        type="text" 
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.distance}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, distance: e.target.value } })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                      <input 
+                        type="number" 
+                        required
+                        className="w-full px-4 py-2 border rounded-lg" 
+                        value={formData.route.price}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, price: Number(e.target.value) } })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amenities */}
+                <div>
+                  <h3 className="text-lg font-semibold border-b pb-2 mb-4 text-gray-700">Amenities</h3>
+                  <div className="flex flex-wrap gap-4">
+                    {Object.keys(formData.amenities).map((key) => (
+                      <label key={key} className="flex items-center space-x-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 text-blue-500" 
+                          checked={formData.amenities[key]}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            amenities: { ...formData.amenities, [key]: e.target.checked }
+                          })}
+                        />
+                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    {isSubmitting ? 'Saving...' : (isEditing ? 'Save Changes' : 'Add Bus')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
