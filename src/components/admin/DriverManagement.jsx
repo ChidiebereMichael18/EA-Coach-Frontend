@@ -428,14 +428,14 @@ const DriverManagement = () => {
                   <Phone size={14} className="text-gray-400" />
                   <span className="text-gray-600">{driver.phone}</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm">
+                {/* <div className="flex items-center space-x-2 text-sm">
                   <Mail size={14} className="text-gray-400" />
                   <span className="text-gray-600">{driver.email}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <MapPin size={14} className="text-gray-400" />
                   <span className="text-gray-600">{driver.address}</span>
-                </div>
+                </div> */}
               </div>
 
               {/* License Info */}
@@ -497,7 +497,7 @@ const DriverManagement = () => {
               )}
 
               {/* Routes */}
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <p className="text-xs text-gray-500 mb-2">Assigned Routes</p>
                 <div className="flex flex-wrap gap-1">
                   {driver.routes.map((route, index) => (
@@ -506,10 +506,10 @@ const DriverManagement = () => {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Certifications */}
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <p className="text-xs text-gray-500 mb-2">Certifications</p>
                 <div className="flex flex-wrap gap-1">
                   {driver.certifications.map((cert, index) => (
@@ -518,7 +518,7 @@ const DriverManagement = () => {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">

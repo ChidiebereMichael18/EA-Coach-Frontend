@@ -257,13 +257,16 @@ const fetchBuses = async () => {
                 </div>
 
                 {/* Amenities */}
-             {bus.amenities && bus.amenities.map((amenity, index) => (
-  <AmenityIcon key={index} amenity={amenity} active={true} />
-))}
-{(!bus.amenities || bus.amenities.length === 0) && (
-  <span className="text-xs text-gray-400">No amenities listed</span>
-)}
-
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {bus.amenities && Object.entries(bus.amenities)
+                    .filter(([key, value]) => value === true)
+                    .map(([amenity, index]) => (
+                      <AmenityIcon key={amenity} amenity={amenity} active={true} />
+                  ))}
+                  {(!bus.amenities || Object.values(bus.amenities).every(v => v === false)) && (
+                    <span className="text-xs text-gray-400">No amenities listed</span>
+                  )}
+                </div>
                 {/* Routes */}
                 <div className="mb-3">
                   <p className="text-xs text-gray-500 mb-1">Assigned Routes:</p>
