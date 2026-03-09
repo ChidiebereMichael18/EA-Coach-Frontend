@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { 
+import React, { useState, useEffect } from 'react';
+import { getBuses, createBus, deleteBus } from '../../services/adminService';
+import {
   Bus, 
   Search, 
   Filter, 
@@ -25,121 +26,49 @@ const BusManagement = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedBus, setSelectedBus] = useState(null);
+  const [buses, setBuses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock buses data
-  const [buses, setBuses] = useState([
-    {
-      id: 1,
-      busNumber: 'JX-001',
-      company: 'Jaguar Executive',
-      type: 'Executive',
-      totalSeats: 53,
-      amenities: {
-        wifi: true,
-        ac: true,
-        usb: true,
-        entertainment: true,
-        bulletproof: false,
-        snacks: true,
-        blanket: true
-      },
-      routes: ['Kampala-Nairobi', 'Kampala-Kigali'],
-      status: 'active',
-      lastMaintenance: '2024-03-01',
-      nextMaintenance: '2024-04-01',
-      driver: 'John Mukasa',
-      image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop'
-    },
-    {
-      id: 2,
-      busNumber: 'GW-002',
-      company: 'Gateway Bus',
-      type: 'Luxury',
-      totalSeats: 53,
-      amenities: {
-        wifi: true,
-        ac: true,
-        usb: true,
-        entertainment: false,
-        bulletproof: false,
-        snacks: true,
-        blanket: false
-      },
-      routes: ['Kampala-Kigali', 'Kampala-Mbarara'],
-      status: 'active',
-      lastMaintenance: '2024-02-15',
-      nextMaintenance: '2024-03-15',
-      driver: 'Sarah Nambi',
+  // Fetch buses on component mount
+  useEffect(() => {
+    fetchBuses();
+  }, []);
 
-      image: 'https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?w=600&h=400&fit=crop'
-    },
-    {
-      id: 3,
-      busNumber: 'NS-003',
-      company: 'Nile Star',
-      type: 'VIP',
-      totalSeats: 53,
-      amenities: {
-        wifi: true,
-        ac: true,
-        usb: true,
-        entertainment: true,
-        bulletproof: true,
-        snacks: true,
-        blanket: true
-      },
-      routes: ['Kampala-Nairobi', 'Kampala-Juba'],
-      status: 'maintenance',
-      lastMaintenance: '2024-03-10',
-      nextMaintenance: '2024-03-25',
-      driver: 'David Ssemakula',
-      image: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600&h=400&fit=crop'
-    },
-    {
-      id: 4,
-      busNumber: 'MP-004',
-      company: 'Mash Poa',
-      type: 'Standard',
-      totalSeats: 53,
-      amenities: {
-        wifi: false,
-        ac: true,
-        usb: true,
-        entertainment: false,
-        bulletproof: false,
-        snacks: false,
-        blanket: false
-      },
-      routes: ['Kampala-Dar es Salaam'],
-      status: 'active',
-      lastMaintenance: '2024-02-28',
-      nextMaintenance: '2024-03-28',
-      driver: 'Robert Kato',
-      image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop'
-    },
-    {
-      id: 5,
-      busNumber: 'RE-005',
-      company: 'Royal Express',
-      type: 'Executive',
-      totalSeats: 53,
-      amenities: {
-        wifi: true,
-        ac: true,
-        usb: true,
-        entertainment: true,
-        bulletproof: true,
-        snacks: true,
-        blanket: true
-      },
-      routes: ['Kampala-Nairobi', 'Kampala-Kigali', 'Kampala-Bujumbura'],
-      status: 'inactive',
-      lastMaintenance: '2024-01-15',
-      nextMaintenance: '2024-02-15',
-      driver: 'Charles Wasswa',
-      image: 'https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?w=600&h=400&fit=crop'
+const fetchBuses = async () => {
+  setIsLoading(true);
+  try {
+    const raw = await getBuses();
+    const data = raw.map(bus => ({
+      ...bus,
+      amenities: Array.isArray(bus.amenities)
+        ? bus.amenities
+        : bus.amenities && typeof bus.amenities === 'object'
+        ? Object.entries(bus.amenities).filter(([_, v]) => v).map(([k]) => k)
+        : []
+    }));
+    setBuses(data);
+  } catch (err) {
+    console.error("Error fetching buses:", err);
+    setError("Failed to load buses data.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this bus?")) {
+      try {
+        await deleteBus(id);
+        setBuses(buses.filter(b => b._id !== id));
+      } catch (err) {
+        console.error("Error deleting bus:", err);
+        alert("Failed to delete bus.");
+      }
     }
-  ]);
+  };
+
+
 
   const filteredBuses = buses.filter(bus => {
     const matchesSearch = bus.busNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -272,19 +201,36 @@ const BusManagement = () => {
         </div>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center items-center py-10 py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
+          {error}
+        </div>
+      )}
+
       {/* Buses Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredBuses.map((bus) => (
-          <div key={bus.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden">
-            <div className="flex flex-col md:flex-row">
-              {/* Bus Image */}
-              <div className="md:w-48 h-32 md:h-auto overflow-hidden">
-                <img
-                  src={bus.image}
-                  alt={bus.busNumber}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredBuses.map((bus) => (
+            <div key={bus._id || bus.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden">
+              <div className="flex flex-col md:flex-row">
+                {/* Bus Image */}
+                <div className="md:w-48 h-32 md:h-auto overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {bus.image ? (
+                    <img
+                      src={bus.image}
+                      alt={bus.busNumber}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Bus size={48} className="text-gray-300" />
+                  )}
+                </div>
 
               {/* Bus Details */}
               <div className="flex-1 p-5">
@@ -311,21 +257,24 @@ const BusManagement = () => {
                 </div>
 
                 {/* Amenities */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {Object.entries(bus.amenities).map(([key, value]) => (
-                    value && <AmenityIcon key={key} amenity={key} active={value} />
-                  ))}
-                </div>
+             {bus.amenities && bus.amenities.map((amenity, index) => (
+  <AmenityIcon key={index} amenity={amenity} active={true} />
+))}
+{(!bus.amenities || bus.amenities.length === 0) && (
+  <span className="text-xs text-gray-400">No amenities listed</span>
+)}
 
                 {/* Routes */}
                 <div className="mb-3">
                   <p className="text-xs text-gray-500 mb-1">Assigned Routes:</p>
                   <div className="flex flex-wrap gap-1">
-                    {bus.routes.map((route, index) => (
+                    {bus.routes && bus.routes.length > 0 ? bus.routes.map((route, index) => (
                       <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                        {route}
+                        {route.from || route} - {route.to || ''}
                       </span>
-                    ))}
+                    )) : (
+                      <span className="text-xs text-gray-400">Unassigned</span>
+                    )}
                   </div>
                 </div>
 
@@ -361,7 +310,10 @@ const BusManagement = () => {
                   <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <Copy size={16} className="text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-red-100 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => handleDelete(bus._id || bus.id)}
+                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                  >
                     <Trash2 size={16} className="text-red-600" />
                   </button>
                 </div>
@@ -370,6 +322,7 @@ const BusManagement = () => {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

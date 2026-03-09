@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getBookings } from '../../services/adminService';
 import { 
   Calendar, 
   Search, 
@@ -25,174 +26,39 @@ const BookingManagement = () => {
   const [filterDate, setFilterDate] = useState('all');
   const [selectedBookings, setSelectedBookings] = useState([]);
   const [showBookingDetails, setShowBookingDetails] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock bookings data
-  const [bookings, setBookings] = useState([
-    {
-      id: 'BK-20240315-001',
-      bookingId: 'BK-20240315-001',
-      user: {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+256 700 123 456'
-      },
-      route: {
-        from: 'Kampala',
-        to: 'Nairobi',
-        departureDate: '2024-03-20',
-        departureTime: '08:00',
-        arrivalTime: '20:00'
-      },
-      bus: {
-        number: 'JX-001',
-        company: 'Jaguar Executive',
-        type: 'Executive'
-      },
-      seats: ['12A', '12B'],
-      passengers: [
-        { name: 'John Doe', age: 32, gender: 'Male' },
-        { name: 'Jane Doe', age: 28, gender: 'Female' }
-      ],
-      totalAmount: 300000,
-      paymentMethod: 'MTN MoMo',
-      paymentStatus: 'completed',
-      bookingStatus: 'confirmed',
-      bookingDate: '2024-03-15T10:30:00',
-      specialRequests: 'Vegetarian meal'
-    },
-    {
-      id: 'BK-20240315-002',
-      bookingId: 'BK-20240315-002',
-      user: {
-        id: 2,
-        name: 'Sarah Smith',
-        email: 'sarah@example.com',
-        phone: '+256 700 789 012'
-      },
-      route: {
-        from: 'Kampala',
-        to: 'Kigali',
-        departureDate: '2024-03-21',
-        departureTime: '09:00',
-        arrivalTime: '17:00'
-      },
-      bus: {
-        number: 'GW-002',
-        company: 'Gateway Bus',
-        type: 'Luxury'
-      },
-      seats: ['8B'],
-      passengers: [
-        { name: 'Sarah Smith', age: 25, gender: 'Female' }
-      ],
-      totalAmount: 120000,
-      paymentMethod: 'Card',
-      paymentStatus: 'completed',
-      bookingStatus: 'confirmed',
-      bookingDate: '2024-03-15T11:45:00',
-      specialRequests: ''
-    },
-    {
-      id: 'BK-20240314-003',
-      bookingId: 'BK-20240314-003',
-      user: {
-        id: 3,
-        name: 'Robert Johnson',
-        email: 'robert@example.com',
-        phone: '+256 700 345 678'
-      },
-      route: {
-        from: 'Jinja',
-        to: 'Nairobi',
-        departureDate: '2024-03-22',
-        departureTime: '07:00',
-        arrivalTime: '18:00'
-      },
-      bus: {
-        number: 'NS-003',
-        company: 'Nile Star',
-        type: 'VIP'
-      },
-      seats: ['15C', '15D', '15E'],
-      passengers: [
-        { name: 'Robert Johnson', age: 45, gender: 'Male' },
-        { name: 'Mary Johnson', age: 42, gender: 'Female' },
-        { name: 'Tom Johnson', age: 12, gender: 'Male' }
-      ],
-      totalAmount: 420000,
-      paymentMethod: 'Bank Transfer',
-      paymentStatus: 'pending',
-      bookingStatus: 'pending',
-      bookingDate: '2024-03-14T15:20:00',
-      specialRequests: 'Need extra luggage space'
-    },
-    {
-      id: 'BK-20240314-004',
-      bookingId: 'BK-20240314-004',
-      user: {
-        id: 4,
-        name: 'Emily Brown',
-        email: 'emily@example.com',
-        phone: '+256 700 901 234'
-      },
-      route: {
-        from: 'Kampala',
-        to: 'Dar es Salaam',
-        departureDate: '2024-03-23',
-        departureTime: '06:00',
-        arrivalTime: '06:00'
-      },
-      bus: {
-        number: 'RE-005',
-        company: 'Royal Express',
-        type: 'Executive'
-      },
-      seats: ['22A', '22B'],
-      passengers: [
-        { name: 'Emily Brown', age: 29, gender: 'Female' },
-        { name: 'David Brown', age: 31, gender: 'Male' }
-      ],
-      totalAmount: 500000,
-      paymentMethod: 'MTN MoMo',
-      paymentStatus: 'failed',
-      bookingStatus: 'cancelled',
-      bookingDate: '2024-03-14T09:15:00',
-      specialRequests: ''
-    },
-    {
-      id: 'BK-20240313-005',
-      bookingId: 'BK-20240313-005',
-      user: {
-        id: 5,
-        name: 'Michael Ouma',
-        email: 'michael@example.com',
-        phone: '+256 700 567 890'
-      },
-      route: {
-        from: 'Mbarara',
-        to: 'Kigali',
-        departureDate: '2024-03-19',
-        departureTime: '10:00',
-        arrivalTime: '15:00'
-      },
-      bus: {
-        number: 'MP-004',
-        company: 'Mash Poa',
-        type: 'Standard'
-      },
-      seats: ['5A'],
-      passengers: [
-        { name: 'Michael Ouma', age: 35, gender: 'Male' }
-      ],
-      totalAmount: 80000,
-      paymentMethod: 'Airtel Money',
-      paymentStatus: 'completed',
-      bookingStatus: 'completed',
-      bookingDate: '2024-03-13T14:30:00',
-      specialRequests: ''
+  // Fetch bookings on component mount
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getBookings();
+      // Ensure data falls back to default empty structures if backend didn't supply them
+      const formattedData = data.map(booking => ({
+        ...booking,
+        user: booking.user || { name: 'Unknown User', email: '', phone: '' },
+        bus: booking.bus || { busNumber: 'Unknown Bus', busType: '' },
+        route: booking.route || { from: '', to: '', departureDate: '', departureTime: '', arrivalTime: '' },
+        passengers: booking.passengers || [],
+        seats: booking.bookedSeats || [],
+      }));
+      setBookings(formattedData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setError("Failed to load bookings data.");
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
+
+
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -224,10 +90,10 @@ const BookingManagement = () => {
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch = 
-      booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${booking.route.from} ${booking.route.to}`.toLowerCase().includes(searchTerm.toLowerCase());
+      (booking.bookingId && booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.user && booking.user.name && booking.user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.user && booking.user.email && booking.user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.route && `${booking.route.from} ${booking.route.to}`.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = filterStatus === 'all' || booking.bookingStatus === filterStatus;
     
@@ -321,7 +187,20 @@ const BookingManagement = () => {
         </div>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center items-center py-10 py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
+          {error}
+        </div>
+      )}
+
       {/* Bookings Table */}
+      {!isLoading && !error && (
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -358,19 +237,19 @@ const BookingManagement = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={booking._id || booking.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="text-sm font-medium text-gray-900">{booking.bookingId}</p>
-                    <p className="text-xs text-gray-500">{new Date(booking.bookingDate).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-500">{new Date(booking.createdAt || booking.bookingDate).toLocaleDateString()}</p>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
-                        {booking.user.name.charAt(0).toUpperCase()}
+                        {booking.user.name ? booking.user.name.charAt(0).toUpperCase() : '?'}
                       </div>
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900">{booking.user.name}</p>
-                        <p className="text-xs text-gray-500">{booking.user.phone}</p>
+                        <p className="text-xs text-gray-500">{booking.user.phone || ''}</p>
                       </div>
                     </div>
                   </td>
@@ -379,11 +258,11 @@ const BookingManagement = () => {
                       <MapPin size={12} className="text-gray-400" />
                       <span className="text-sm text-gray-600">{booking.route.from} → {booking.route.to}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{booking.bus.company}</p>
+                    <p className="text-xs text-gray-500 mt-1">{booking.bus.company || booking.bus.busType || ''} {booking.bus.busNumber ? `(${booking.bus.busNumber})` : ''}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-gray-600">{booking.route.departureDate}</p>
-                    <p className="text-xs text-gray-500">{booking.route.departureTime} - {booking.route.arrivalTime}</p>
+                    <p className="text-sm text-gray-600">{booking.route.departureDate ? new Date(booking.route.departureDate).toLocaleDateString() : ''}</p>
+                    <p className="text-xs text-gray-500">{booking.route.departureTime || ''} {booking.route.arrivalTime ? `- ${booking.route.arrivalTime}` : ''}</p>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-1">
@@ -457,6 +336,7 @@ const BookingManagement = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Booking Details Modal */}
       {showBookingDetails && (
@@ -484,7 +364,7 @@ const BookingManagement = () => {
                     Payment: {showBookingDetails.paymentStatus}
                   </span>
                   <span className="text-sm text-gray-500">
-                    Booked on: {new Date(showBookingDetails.bookingDate).toLocaleString()}
+                    Booked on: {new Date(showBookingDetails.createdAt || showBookingDetails.bookingDate).toLocaleString()}
                   </span>
                 </div>
 
@@ -521,7 +401,7 @@ const BookingManagement = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Date</p>
-                      <p className="font-medium">{showBookingDetails.route.departureDate}</p>
+                      <p className="font-medium">{showBookingDetails.route.departureDate ? new Date(showBookingDetails.route.departureDate).toLocaleDateString() : ''}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Time</p>
@@ -536,15 +416,15 @@ const BookingManagement = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500">Bus Number</p>
-                      <p className="font-medium">{showBookingDetails.bus.number}</p>
+                      <p className="font-medium">{showBookingDetails.bus.number || showBookingDetails.bus.busNumber}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Company</p>
-                      <p className="font-medium">{showBookingDetails.bus.company}</p>
+                      <p className="font-medium">{showBookingDetails.bus.company || 'EA Coach'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Type</p>
-                      <p className="font-medium">{showBookingDetails.bus.type}</p>
+                      <p className="font-medium">{showBookingDetails.bus.type || showBookingDetails.bus.busType}</p>
                     </div>
                   </div>
                 </div>

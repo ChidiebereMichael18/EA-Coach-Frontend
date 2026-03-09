@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getBookings } from '../../services/adminService';
 import { 
   CreditCard, 
   Search, 
@@ -20,85 +21,45 @@ const PaymentManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterMethod, setFilterMethod] = useState('all');
+  const [payments, setPayments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock payments data
-  const [payments, setPayments] = useState([
-    {
-      id: 'PAY-20240315-001',
-      transactionId: 'TXN-12345678',
-      bookingId: 'BK-20240315-001',
-      user: {
-        name: 'John Doe',
-        email: 'john@example.com'
-      },
-      amount: 300000,
-      method: 'MTN MoMo',
-      status: 'completed',
-      date: '2024-03-15T10:30:00',
-      reference: 'MOMO-987654',
-      description: 'Bus ticket payment for Kampala to Nairobi'
-    },
-    {
-      id: 'PAY-20240315-002',
-      transactionId: 'TXN-23456789',
-      bookingId: 'BK-20240315-002',
-      user: {
-        name: 'Sarah Smith',
-        email: 'sarah@example.com'
-      },
-      amount: 120000,
-      method: 'Card',
-      status: 'completed',
-      date: '2024-03-15T11:45:00',
-      reference: 'CARD-456789',
-      description: 'Bus ticket payment for Kampala to Kigali'
-    },
-    {
-      id: 'PAY-20240314-003',
-      transactionId: 'TXN-34567890',
-      bookingId: 'BK-20240314-003',
-      user: {
-        name: 'Robert Johnson',
-        email: 'robert@example.com'
-      },
-      amount: 420000,
-      method: 'Bank Transfer',
-      status: 'pending',
-      date: '2024-03-14T15:20:00',
-      reference: 'BANK-789012',
-      description: 'Bus ticket payment for Jinja to Nairobi'
-    },
-    {
-      id: 'PAY-20240314-004',
-      transactionId: 'TXN-45678901',
-      bookingId: 'BK-20240314-004',
-      user: {
-        name: 'Emily Brown',
-        email: 'emily@example.com'
-      },
-      amount: 500000,
-      method: 'MTN MoMo',
-      status: 'failed',
-      date: '2024-03-14T09:15:00',
-      reference: 'MOMO-123456',
-      description: 'Bus ticket payment for Kampala to Dar es Salaam'
-    },
-    {
-      id: 'PAY-20240313-005',
-      transactionId: 'TXN-56789012',
-      bookingId: 'BK-20240313-005',
-      user: {
-        name: 'Michael Ouma',
-        email: 'michael@example.com'
-      },
-      amount: 80000,
-      method: 'Airtel Money',
-      status: 'completed',
-      date: '2024-03-13T14:30:00',
-      reference: 'AIRTEL-345678',
-      description: 'Bus ticket payment for Mbarara to Kigali'
+  // Fetch bookings on component mount to extract payments
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    setIsLoading(true);
+    try {
+      const bookingsData = await getBookings();
+      
+      // Extract payment information from bookings
+      const extractedPayments = bookingsData.map(booking => ({
+        id: booking._id,
+        // Since backend doesn't have transactionId, we derive one or use a placeholder
+        transactionId: `TXN-${booking._id.substring(0, 8).toUpperCase()}`,
+        bookingId: booking.bookingId,
+        user: booking.user || { name: 'Unknown User', email: '' },
+        amount: booking.totalAmount || 0,
+        method: booking.paymentMethod || 'Unknown',
+        status: booking.paymentStatus || 'pending',
+        date: booking.createdAt || booking.bookingDate || new Date().toISOString(),
+        reference: `REF-${booking.bookingId}`, // Derived reference
+        description: `Bus ticket payment for ${booking.route ? `${booking.route.from} to ${booking.route.to}` : 'Unknown Route'}`
+      }));
+      
+      setPayments(extractedPayments);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching payments:", err);
+      setError("Failed to load payment data.");
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
+
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -265,7 +226,20 @@ const PaymentManagement = () => {
         </div>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center items-center py-10 py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
+          {error}
+        </div>
+      )}
+
       {/* Payments Table */}
+      {!isLoading && !error && (
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -376,6 +350,7 @@ const PaymentManagement = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getDrivers, createDriver, deleteDriver, updateDriver, getBuses } from '../../services/adminService';
 import { 
   Users, 
   Search, 
@@ -35,186 +36,144 @@ const DriverManagement = () => {
   const [showDriverDetails, setShowDriverDetails] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [drivers, setDrivers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock drivers data
-  const [drivers, setDrivers] = useState([
-    {
-      id: 1,
-      driverId: 'DRV-001',
-      name: 'John Mukasa',
-      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
-      email: 'john.mukasa@example.com',
-      phone: '+256 700 123 456',
-      address: 'Kampala, Uganda',
-      licenseNumber: 'DL-2024-001234',
-      licenseExpiry: '2025-12-31',
-      experience: 8,
-      joinDate: '2022-03-15',
-      status: 'active',
-      assignedBus: {
-        id: 1,
-        number: 'JX-001',
-        company: 'Jaguar Executive'
-      },
-      routes: ['Kampala-Nairobi', 'Kampala-Kigali'],
-      rating: 4.8,
-      totalTrips: 456,
-      accidents: 0,
-      violations: 1,
-      certifications: ['Defensive Driving', 'First Aid', 'Long Distance'],
-      emergencyContact: {
-        name: 'Mary Mukasa',
-        phone: '+256 700 789 012',
-        relation: 'Spouse'
-      },
-      documents: {
-        license: 'license.pdf',
-        medical: 'medical.pdf',
-        contract: 'contract.pdf'
-      }
-    },
-    {
-      id: 2,
-      driverId: 'DRV-002',
-      name: 'Sarah Nambi',
-      photo: 'https://images.unsplash.com/photo-1494790108777-466d853a5d7f?w=150&h=150&fit=crop',
-      email: 'sarah.nambi@example.com',
-      phone: '+256 700 234 567',
-      address: 'Entebbe, Uganda',
-      licenseNumber: 'DL-2024-002345',
-      licenseExpiry: '2025-06-30',
-      experience: 5,
-      joinDate: '2023-01-10',
-      status: 'active',
-      assignedBus: {
-        id: 2,
-        number: 'GW-002',
-        company: 'Gateway Bus'
-      },
-      routes: ['Kampala-Kigali', 'Kampala-Mbarara'],
-      rating: 4.6,
-      totalTrips: 234,
-      accidents: 0,
-      violations: 0,
-      certifications: ['Defensive Driving', 'First Aid'],
-      emergencyContact: {
-        name: 'Peter Nambi',
-        phone: '+256 700 345 678',
-        relation: 'Brother'
-      },
-      documents: {
-        license: 'license.pdf',
-        medical: 'medical.pdf',
-        contract: 'contract.pdf'
-      }
-    },
-    {
-      id: 3,
-      driverId: 'DRV-003',
-      name: 'David Ssemakula',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-      email: 'david.ssemakula@example.com',
-      phone: '+256 700 345 678',
-      address: 'Jinja, Uganda',
-      licenseNumber: 'DL-2024-003456',
-      licenseExpiry: '2024-08-15',
-      experience: 12,
-      joinDate: '2021-06-20',
-      status: 'on_leave',
-      assignedBus: null,
-      routes: ['Kampala-Nairobi', 'Kampala-Juba'],
-      rating: 4.9,
-      totalTrips: 678,
-      accidents: 1,
-      violations: 2,
-      certifications: ['Defensive Driving', 'First Aid', 'Long Distance', 'Night Driving'],
-      emergencyContact: {
-        name: 'Grace Ssemakula',
-        phone: '+256 700 456 789',
-        relation: 'Spouse'
-      },
-      documents: {
-        license: 'license.pdf',
-        medical: 'medical.pdf',
-        contract: 'contract.pdf'
-      }
-    },
-    {
-      id: 4,
-      driverId: 'DRV-004',
-      name: 'Robert Kato',
-      photo: 'https://images.unsplash.com/photo-1504257432389-52343af06ae5?w=150&h=150&fit=crop',
-      email: 'robert.kato@example.com',
-      phone: '+256 700 456 789',
-      address: 'Mbarara, Uganda',
-      licenseNumber: 'DL-2024-004567',
-      licenseExpiry: '2024-11-30',
-      experience: 3,
-      joinDate: '2023-09-05',
-      status: 'active',
-      assignedBus: {
-        id: 3,
-        number: 'NS-003',
-        company: 'Nile Star'
-      },
-      routes: ['Jinja-Nairobi'],
-      rating: 4.3,
-      totalTrips: 89,
-      accidents: 0,
-      violations: 0,
-      certifications: ['Defensive Driving'],
-      emergencyContact: {
-        name: 'Janet Kato',
-        phone: '+256 700 567 890',
-        relation: 'Mother'
-      },
-      documents: {
-        license: 'license.pdf',
-        medical: 'medical.pdf',
-        contract: 'contract.pdf'
-      }
-    },
-    {
-      id: 5,
-      driverId: 'DRV-005',
-      name: 'Charles Wasswa',
-      photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
-      email: 'charles.wasswa@example.com',
-      phone: '+256 700 567 890',
-      address: 'Gulu, Uganda',
-      licenseNumber: 'DL-2024-005678',
-      licenseExpiry: '2024-09-20',
-      experience: 7,
-      joinDate: '2022-11-12',
-      status: 'inactive',
-      assignedBus: null,
-      routes: ['Kampala-Gulu'],
-      rating: 4.5,
-      totalTrips: 345,
-      accidents: 1,
-      violations: 3,
-      certifications: ['Defensive Driving', 'First Aid'],
-      emergencyContact: {
-        name: 'Sarah Wasswa',
-        phone: '+256 700 678 901',
-        relation: 'Spouse'
-      },
-      documents: {
-        license: 'license.pdf',
-        medical: 'medical.pdf',
-        contract: 'contract.pdf'
+  const [availableBuses, setAvailableBuses] = useState([]);
+  const [selectedBusId, setSelectedBusId] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    licenseNumber: '',
+    experienceYears: '',
+    status: 'active'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddDriver = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.licenseNumber) {
+      alert("Name and License Number are required");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const driverData = {
+        name: formData.name,
+        licenseNumber: formData.licenseNumber,
+        phone: formData.phone,
+        experienceYears: Number(formData.experienceYears) || 0,
+        status: formData.status
+      };
+      
+      const newDriver = await createDriver(driverData);
+      
+      // format for frontend display
+      const formattedDriver = {
+        ...newDriver,
+        rating: 0,
+        totalTrips: 0,
+        routes: [],
+        certifications: [],
+        experience: newDriver.experienceYears || 0,
+      };
+      
+      setDrivers([...drivers, formattedDriver]);
+      setShowAddModal(false);
+      setFormData({
+        name: '',
+        phone: '',
+        licenseNumber: '',
+        experienceYears: '',
+        status: 'active'
+      });
+    } catch (err) {
+      console.error("Error creating driver:", err);
+      alert(err.response?.data?.message || "Failed to add driver. Ensure license number is unique.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Fetch drivers and buses on component mount
+  useEffect(() => {
+    fetchDrivers();
+    fetchBuses();
+  }, []);
+
+  const fetchBuses = async () => {
+    try {
+      const data = await getBuses();
+      setAvailableBuses(data);
+    } catch (err) {
+      console.error("Error fetching buses:", err);
+    }
+  };
+
+  const handleAssignBus = async () => {
+    if (!selectedDriver || !selectedBusId) return;
+    try {
+      const updatedDriver = await updateDriver(selectedDriver._id || selectedDriver.id, { assignedBus: selectedBusId });
+      
+      const formattedDriver = {
+        ...updatedDriver,
+        rating: updatedDriver.rating || 0,
+        totalTrips: updatedDriver.totalTrips || 0,
+        routes: updatedDriver.routes || [],
+        certifications: updatedDriver.certifications || [],
+        experience: updatedDriver.experienceYears || 0,
+      };
+
+      setDrivers(drivers.map(d => (d._id || d.id) === (updatedDriver._id || updatedDriver.id) ? formattedDriver : d));
+      setShowAssignModal(false);
+      setSelectedDriver(null);
+      setSelectedBusId('');
+    } catch (err) {
+      console.error("Error assigning bus:", err);
+      alert("Failed to assign bus");
+    }
+  };
+
+  const fetchDrivers = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getDrivers();
+      // Ensure data falls back to default empty structures if backend didn't supply them
+      const formattedData = data.map(driver => ({
+        ...driver,
+        rating: driver.rating || 0,
+        totalTrips: driver.totalTrips || 0,
+        routes: driver.routes || [],
+        certifications: driver.certifications || [],
+        experience: driver.experience || 0,
+      }));
+      setDrivers(formattedData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching drivers:", err);
+      setError("Failed to load drivers data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this driver?")) {
+      try {
+        await deleteDriver(id);
+        setDrivers(drivers.filter(d => d._id !== id));
+      } catch (err) {
+        console.error("Error deleting driver:", err);
+        alert("Failed to delete driver.");
       }
     }
-  ]);
+  };
 
-  // Mock available buses for assignment
-  const availableBuses = [
-    { id: 1, number: 'JX-001', company: 'Jaguar Executive', status: 'active' },
-    { id: 2, number: 'GW-002', company: 'Gateway Bus', status: 'active' },
-    { id: 3, number: 'NS-003', company: 'Nile Star', status: 'maintenance' },
-    { id: 4, number: 'MP-004', company: 'Mash Poa', status: 'active' },
-    { id: 5, number: 'RE-005', company: 'Royal Express', status: 'active' },
-  ];
+
+
 
   // Mock driver schedules
   const driverSchedules = {
@@ -418,20 +377,37 @@ const DriverManagement = () => {
         </div>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center items-center py-10 py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-lg text-center">
+          {error}
+        </div>
+      )}
+
       {/* Drivers Grid */}
+      {!isLoading && !error && (
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredDrivers.map((driver) => (
-          <div key={driver.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden">
+          <div key={driver._id || driver.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden">
             {/* Driver Header */}
             <div className="bg-gradient-to-r from-blue-500 to-secondary p-4 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden">
-                    <img
-                      src={driver.photo}
-                      alt={driver.name}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {driver.photo ? (
+                      <img
+                        src={driver.photo}
+                        alt={driver.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserCheck size={24} className="text-gray-400" />
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold">{driver.name}</h3>
@@ -510,7 +486,7 @@ const DriverManagement = () => {
                   <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
                     <Bus size={16} className="text-blue-600" />
                     <span className="text-sm font-medium text-blue-700">
-                      {driver.assignedBus.number} - {driver.assignedBus.company}
+                      {driver.assignedBus.busNumber || driver.assignedBus.number} - {driver.assignedBus.company || driver.assignedBus.busType}
                     </span>
                   </div>
                 </div>
@@ -547,17 +523,20 @@ const DriverManagement = () => {
               {/* Action Buttons */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                 <div className="flex items-center space-x-2">
-                  <button
+                  {/* <button
                     onClick={() => setShowDriverDetails(driver)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     title="View Details"
                   >
                     <Eye size={16} className="text-gray-600" />
-                  </button>
+                  </button> */}
                   <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
                     <Edit2 size={16} className="text-gray-600" />
                   </button>
-                  <button className="p-2 hover:bg-red-100 rounded-lg transition-colors" title="Delete">
+                  <button 
+                    onClick={() => handleDelete(driver._id || driver.id)}
+                    className="p-2 hover:bg-red-100 rounded-lg transition-colors" title="Delete"
+                  >
                     <Trash2 size={16} className="text-red-600" />
                   </button>
                 </div>
@@ -576,6 +555,7 @@ const DriverManagement = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Driver Details Modal */}
       {showDriverDetails && (
@@ -815,18 +795,24 @@ const DriverManagement = () => {
                   Select Bus
                 </label>
                 {availableBuses.map(bus => (
-                  <label key={bus.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input type="radio" name="bus" className="w-4 h-4 text-blue-500" />
+                  <label key={bus._id || bus.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input 
+                      type="radio" 
+                      name="bus" 
+                      className="w-4 h-4 text-blue-500" 
+                      checked={selectedBusId === (bus._id || bus.id)}
+                      onChange={() => setSelectedBusId(bus._id || bus.id)}
+                    />
                     <div className="ml-3 flex-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{bus.number}</span>
+                        <span className="font-medium">{bus.busNumber || bus.number}</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           bus.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
                         }`}>
                           {bus.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">{bus.company}</p>
+                      <p className="text-sm text-gray-500">{bus.company || bus.busType}</p>
                     </div>
                   </label>
                 ))}
@@ -842,7 +828,10 @@ const DriverManagement = () => {
                 >
                   Cancel
                 </button>
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                <button 
+                  onClick={handleAssignBus}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
                   Assign Bus
                 </button>
               </div>
@@ -866,7 +855,7 @@ const DriverManagement = () => {
                 </button>
               </div>
 
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleAddDriver}>
                 {/* Photo Upload */}
                 <div className="flex items-center space-x-4">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
@@ -882,97 +871,71 @@ const DriverManagement = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name *
                     </label>
-                    <input type="text" className="w-full px-4 py-2 border rounded-lg" placeholder="Enter full name" />
+                    <input 
+                      type="text" 
+                      className="w-full px-4 py-2 border rounded-lg" 
+                      placeholder="Enter full name" 
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
-                    <input type="email" className="w-full px-4 py-2 border rounded-lg" placeholder="Enter email" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone *
-                    </label>
-                    <input type="tel" className="w-full px-4 py-2 border rounded-lg" placeholder="+256 XXX XXX XXX" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Address
-                    </label>
-                    <input type="text" className="w-full px-4 py-2 border rounded-lg" placeholder="Enter address" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       License Number *
                     </label>
-                    <input type="text" className="w-full px-4 py-2 border rounded-lg" placeholder="Enter license number" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      License Expiry *
-                    </label>
-                    <input type="date" className="w-full px-4 py-2 border rounded-lg" />
+                    <input 
+                      type="text" 
+                      className="w-full px-4 py-2 border rounded-lg" 
+                      placeholder="Enter license number" 
+                      value={formData.licenseNumber}
+                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                      required
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <input 
+                      type="tel" 
+                      className="w-full px-4 py-2 border rounded-lg" 
+                      placeholder="+256 XXX XXX XXX" 
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Experience (years)
                     </label>
-                    <input type="number" className="w-full px-4 py-2 border rounded-lg" placeholder="Years of experience" />
+                    <input 
+                      type="number" 
+                      className="w-full px-4 py-2 border rounded-lg" 
+                      placeholder="Years of experience" 
+                      value={formData.experienceYears}
+                      onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
+                    />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Status
                     </label>
-                    <select className="w-full px-4 py-2 border rounded-lg">
-                      <option>Active</option>
-                      <option>On Leave</option>
-                      <option>Inactive</option>
+                    <select 
+                      className="w-full px-4 py-2 border rounded-lg"
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="active">Active</option>
+                      <option value="on_leave">On Leave</option>
+                      <option value="inactive">Inactive</option>
                     </select>
-                  </div>
-                </div>
-
-                {/* Emergency Contact */}
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">Emergency Contact</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="col-span-1">
-                      <input type="text" className="w-full px-4 py-2 border rounded-lg" placeholder="Name" />
-                    </div>
-                    <div className="col-span-1">
-                      <input type="tel" className="w-full px-4 py-2 border rounded-lg" placeholder="Phone" />
-                    </div>
-                    <div className="col-span-1">
-                      <input type="text" className="w-full px-4 py-2 border rounded-lg" placeholder="Relation" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Documents */}
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-gray-800 mb-3">Documents</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Upload License
-                      </button>
-                      <span className="text-sm text-gray-500">PDF, JPG, PNG (Max 5MB)</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Upload Medical Certificate
-                      </button>
-                      <span className="text-sm text-gray-500">PDF, JPG, PNG (Max 5MB)</span>
-                    </div>
                   </div>
                 </div>
 
@@ -986,9 +949,10 @@ const DriverManagement = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                    disabled={isSubmitting}
                   >
-                    Add Driver
+                    {isSubmitting ? 'Adding...' : 'Add Driver'}
                   </button>
                 </div>
               </form>
