@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://ea-coach-backend.onrender.com/',
+        target: 'https://ea-coach-backend.onrender.com',
         changeOrigin: true,
       },
     },
