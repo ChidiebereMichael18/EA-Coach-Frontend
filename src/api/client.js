@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://ea-coach-backend.vercel.app';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://ea-coach-backend.onrender.com/';
 
 export function getAuthHeaders() {
   const token = localStorage.getItem('token');
