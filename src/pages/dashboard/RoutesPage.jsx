@@ -194,7 +194,28 @@ const RoutesPage = () => {
       image: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600&h=400&fit=crop',
       busNumber: 'LB-008',
       stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
-    }
+    },
+    {
+      id: 9,
+      from: 'Kampala',
+      to: 'Bujumbura',
+      distance: '900 km',
+      duration: '18h',
+      price: 200000,
+      busCompany: 'Lake Bus',
+      busType: 'Executive',
+      departureTime: '05:00',
+      arrivalTime: '23:00',
+      availableSeats: 32,
+      totalSeats: 53,
+      days: ['Wed', 'Sun'],
+      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
+      rating: 4.6,
+      reviews: 112,
+      image: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600&h=400&fit=crop',
+      busNumber: 'LB-008',
+      stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
+    },
   ];
 
   const getAmenityIcon = (amenity) => {

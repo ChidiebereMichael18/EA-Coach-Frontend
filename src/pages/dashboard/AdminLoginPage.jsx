@@ -65,6 +65,7 @@ const AdminLoginPage = () => {
         };
         localStorage.setItem('admin', JSON.stringify(adminData));
         localStorage.setItem('user', JSON.stringify({ ...adminData, role: 'admin' }));
+        localStorage.setItem('token', 'mock_admin_token'); // Added mock token to fix dashboard redirect
         
         // Redirect to admin dashboard
         navigate('/admin');

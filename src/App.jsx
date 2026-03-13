@@ -4,7 +4,7 @@ import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import BookingPage from './pages/dashboard/BookingPage';
-import HomePage from './pages/Homepage';
+import HomePage from './pages/HomePage';
 import RoutesPage from './pages/dashboard/RoutesPage';
 import AdminDashboardPage from './pages/dashboard/AdminDashboardPage';
 import AdminLoginPage from './pages/dashboard/AdminLoginPage';
@@ -14,7 +14,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomePage/>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           {/* dashboard routes  */}

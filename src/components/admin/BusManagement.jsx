@@ -21,6 +21,23 @@ import {
   DollarSign
 } from 'lucide-react';
 
+const CITIES = [
+  'Kampala',
+  'Jinja',
+  'Mbarara',
+  'Gulu',
+  'Entebbe',
+  'Nairobi',
+  'Kigali',
+  'Dar es Salaam',
+  'Juba',
+  'Bujumbura',
+  'Arusha',
+  'Mombasa',
+  'Kisumu',
+  'Dodoma'
+];
+
 const BusManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -514,23 +531,31 @@ const fetchBuses = async () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">From *</label>
-                      <input 
-                        type="text" 
+                      <select 
                         required
-                        className="w-full px-4 py-2 border rounded-lg" 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" 
                         value={formData.route.from}
                         onChange={(e) => setFormData({ ...formData, route: { ...formData.route, from: e.target.value } })}
-                      />
+                      >
+                        <option value="">Select Origin</option>
+                        {CITIES.map(city => (
+                          <option key={`from-${city}`} value={city}>{city}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">To *</label>
-                      <input 
-                        type="text" 
+                      <select 
                         required
-                        className="w-full px-4 py-2 border rounded-lg" 
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" 
                         value={formData.route.to}
                         onChange={(e) => setFormData({ ...formData, route: { ...formData.route, to: e.target.value } })}
-                      />
+                      >
+                        <option value="">Select Destination</option>
+                        {CITIES.map(city => (
+                          <option key={`to-${city}`} value={city}>{city}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">
