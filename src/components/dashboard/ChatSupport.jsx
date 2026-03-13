@@ -11,6 +11,7 @@ import {
   Minimize2,
   Maximize2
 } from 'lucide-react';
+import { getApiBase } from '../../api/client';
 
 const ChatSupport = () => {
   const [messages, setMessages] = useState([
@@ -70,7 +71,8 @@ const ChatSupport = () => {
       
       chatHistory.push({ role: 'user', content: inputMessage });
 
-      const response = await fetch('/api/chat', {
+      const API_BASE = getApiBase();
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
