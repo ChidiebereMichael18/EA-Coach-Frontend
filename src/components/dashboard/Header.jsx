@@ -1,7 +1,7 @@
 import React from 'react';
-import { Menu, Bell, Search } from 'lucide-react';
+import { Menu, Bell, Search, LogOut } from 'lucide-react';
 
-const Header = ({ user, toggleSidebar, isSidebarOpen }) => {
+const Header = ({ user, toggleSidebar, isSidebarOpen, onLogout }) => {
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3">
       <div className="flex items-center justify-between">
@@ -47,6 +47,16 @@ const Header = ({ user, toggleSidebar, isSidebarOpen }) => {
               {user?.name ? user.name.charAt(0).toUpperCase() : 'G'}
             </div>
           </div>
+
+          {/* Logout Button (Desktop) */}
+          <button
+            onClick={onLogout}
+            className="hidden sm:flex items-center space-x-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+            title="Logout"
+          >
+            <LogOut size={18} />
+            <span className="hidden lg:block">Logout</span>
+          </button>
         </div>
       </div>
 

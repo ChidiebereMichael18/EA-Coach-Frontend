@@ -34,7 +34,9 @@ const Navbar = () => {
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-white'
+      isOpen 
+        ? 'bg-white shadow-lg' 
+        : (scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-white')
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">

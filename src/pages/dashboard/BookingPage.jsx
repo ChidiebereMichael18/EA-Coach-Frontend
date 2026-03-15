@@ -202,12 +202,15 @@ const BookingPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Header user={user} />
 
-      <button
-        onClick={() => navigate("/dashboard")}
-        className="mx-4 p-1 text-blue-600 hover:text-blue-800 cursor-pointer hover:bg-blue-50 rounded-full transition-colors"
-      >
-        <ArrowLeft size={20} />
-      </button>
+      <div className="max-w-7xl mx-auto px-4 mt-6">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 text-gray-700 transition-all font-medium group"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Dashboard</span>
+        </button>
+      </div>
 
       <main className="container mx-auto px-4 py-8">
         {/* Progress Steps */}
@@ -487,9 +490,9 @@ const BookingPage = () => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer transition-all font-medium group"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                   <span>Back to bus selection</span>
                 </button>
 
@@ -516,9 +519,9 @@ const BookingPage = () => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer transition-all font-medium group"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                   <span>Back to seat selection</span>
                 </button>
 
@@ -549,9 +552,9 @@ const BookingPage = () => {
               <div className="space-y-6">
                 <button
                   onClick={() => setCurrentStep(3)}
-                  className="flex items-center space-x-2 text-red-400 hover:text-red-500 cursor-pointer transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 cursor-pointer transition-all font-medium group"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                   <span>Back to passenger details</span>
                 </button>
 

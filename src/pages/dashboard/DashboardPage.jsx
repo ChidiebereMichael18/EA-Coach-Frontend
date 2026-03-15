@@ -7,6 +7,7 @@ import BookingHistory from '../../components/dashboard/BookingHistory';
 import ChatSupport from '../../components/dashboard/ChatSupport';
 import Profile from '../../components/dashboard/Profile';
 import { getProfile } from '../../api/dashboardApi';
+import { ChevronLeft } from 'lucide-react';
 
 const DashboardPage = () => {
   const [searchParams] = useSearchParams();
@@ -93,9 +94,19 @@ const DashboardPage = () => {
             user={user}
             toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
+            onLogout={handleLogout}
           />
           
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
+            {currentView !== 'home' && (
+              <button
+                onClick={() => setCurrentView('home')}
+                className="mb-6 flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 text-gray-700 transition-all font-medium group"
+              >
+                <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                <span>Back to Dashboard Home</span>
+              </button>
+            )}
             {renderView()}
           </main>
         </div>
