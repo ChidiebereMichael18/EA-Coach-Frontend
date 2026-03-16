@@ -35,7 +35,8 @@ const CITIES = [
   'Arusha',
   'Mombasa',
   'Kisumu',
-  'Dodoma'
+  'Dodoma',"Lira", "Arua", "Masaka", "Mbale",
+  "Fort Portal", "Kabale", "Kasese", "Soroti", "Kitgum", "Hoima",
 ];
 
 const BusManagement = () => {

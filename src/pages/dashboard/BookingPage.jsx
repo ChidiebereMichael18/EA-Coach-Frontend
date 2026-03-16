@@ -22,8 +22,9 @@ import { createBooking } from "../../api/dashboardApi";
 const LOCATIONS = [
   "Kampala", "Jinja", "Mbarara", "Gulu", "Lira", "Arua", "Masaka", "Mbale",
   "Fort Portal", "Kabale", "Kasese", "Soroti", "Kitgum", "Hoima",
-  "Nairobi", "Kigali", "Dar es Salaam",
+  "Nairobi", "Kigali", "Dar es Salaam","Dodoma, Bujumbura, Arusha, Mombasa, Kisumu"
 ];
+
 
 function mapBusFromApi(bus) {
   const a = bus.amenities || {};
