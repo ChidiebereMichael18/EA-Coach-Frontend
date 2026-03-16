@@ -293,7 +293,7 @@ const BookingManagement = () => {
                       >
                         <Eye size={16} className="text-gray-600" />
                       </button>
-                      <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      {/* <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                         <Download size={16} className="text-gray-600" />
                       </button>
                       <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
@@ -301,7 +301,7 @@ const BookingManagement = () => {
                       </button>
                       <button className="p-1 hover:bg-red-100 rounded-lg transition-colors">
                         <XCircle size={16} className="text-red-600" />
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>
