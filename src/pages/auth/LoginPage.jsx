@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Bus, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { login } from '../../api/authApi';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // If ProtectedRoute redirected here, send the user back to their intended page after login
+  const from = location.state?.from?.pathname || null;
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -64,7 +67,9 @@ const LoginPage = () => {
       const { token, _id, name, email, phone, role } = result.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify({ _id, name, email, phone, role }));
-      navigate(role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+      // Redirect back to intended page, or default dashboard
+      const destination = from || (role === 'admin' ? '/admin' : '/dashboard');
+      navigate(destination, { replace: true });
       return;
     }
 

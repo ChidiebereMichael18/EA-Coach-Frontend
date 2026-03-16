@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getBuses, createBus, updateBus, deleteBus } from '../../services/adminService';
 import {
-  Bus, 
-  Search, 
-  Filter, 
-  Edit2, 
-  Trash2, 
+  Bus,
+  Search,
+  Filter,
+  Edit2,
+  Trash2,
   Plus,
   Wifi,
   Wind,
@@ -18,7 +18,8 @@ import {
   Clock,
   Users,
   MapPin,
-  DollarSign
+  DollarSign,
+  Calendar
 } from 'lucide-react';
 
 const CITIES = [
@@ -368,25 +369,62 @@ const fetchBuses = async () => {
                     <span className="text-xs text-gray-400">No amenities listed</span>
                   )}
                 </div>
-                {/* Routes */}
-                <div className="mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Assigned Route:</p>
-                  <div className="flex flex-wrap gap-1">
+                {/* Route + Departure Date */}
+                <div className="mb-3 space-y-2">
+                  {/* Route row */}
+                  <div className="flex items-center gap-2">
+                    <MapPin size={13} className="text-gray-400 flex-shrink-0" />
                     {bus.route && bus.route.from && bus.route.to ? (
-                      <>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                          {bus.route.from} → {bus.route.to}
-                        </span>
-                        {bus.route.departureDate && (
-                          <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                            📅 {new Date(bus.route.departureDate).toLocaleDateString()}
-                          </span>
-                        )}
-                      </>
+                      <span className="text-sm text-gray-700 font-medium">
+                        {bus.route.from} → {bus.route.to}
+                      </span>
                     ) : (
-                      <span className="text-xs text-gray-400">Unassigned</span>
+                      <span className="text-xs text-gray-400">Route unassigned</span>
                     )}
                   </div>
+
+                  {/* Departure date — prominent block */}
+                  {(() => {
+                    if (!bus.route?.departureDate) {
+                      return (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+                          <Calendar size={14} className="text-gray-400" />
+                          <span className="text-xs text-gray-400 italic">No departure date set</span>
+                        </div>
+                      );
+                    }
+                    const depDate = new Date(bus.route.departureDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    depDate.setHours(0, 0, 0, 0);
+                    const isPast   = depDate < today;
+                    const isToday  = depDate.getTime() === today.getTime();
+                    const colorCls = isPast
+                      ? 'bg-red-50 border-red-200 text-red-700'
+                      : isToday
+                      ? 'bg-amber-50 border-amber-300 text-amber-700'
+                      : 'bg-green-50 border-green-200 text-green-700';
+                    const label = isPast ? 'Departed' : isToday ? "Departs Today" : 'Upcoming Departure';
+                    return (
+                      <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${colorCls}`}>
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} />
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</p>
+                            <p className="text-sm font-bold">
+                              {new Date(bus.route.departureDate).toLocaleDateString('en-GB', {
+                                weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs opacity-70">Time</p>
+                          <p className="text-sm font-bold">{bus.route.departureTime || '—'}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Driver Info */}

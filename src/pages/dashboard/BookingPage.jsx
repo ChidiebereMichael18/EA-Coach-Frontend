@@ -127,10 +127,23 @@ const BookingPage = () => {
     setSearchData({ ...searchParams });
     setSearchError(null);
     setSearchLoading(true);
-    getBuses({ from: searchParams.from, to: searchParams.to, date: searchParams.date })
+    getBuses({ from: searchParams.from, to: searchParams.to })
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
-          setAvailableBuses(res.data.map(mapBusFromApi));
+          const searchedDate = searchParams.date || null;
+          const mapped = res.data.map(mapBusFromApi);
+
+          // Strict date filter: only show buses whose departureDate matches
+          // the searched date exactly. Buses with no date set are excluded too.
+          const filtered = searchedDate
+            ? mapped.filter((bus) => {
+                if (!bus.departureDate) return false; // must have a date
+                const busDay = new Date(bus.departureDate).toISOString().split('T')[0];
+                return busDay === searchedDate;
+              })
+            : mapped;
+
+          setAvailableBuses(filtered);
         } else {
           setSearchError(res.errorMessage || 'Failed to load buses.');
         }
@@ -397,112 +410,116 @@ const BookingPage = () => {
                     <h2 className="text-2xl font-bold mb-6">Available Buses</h2>
                     <div className="space-y-4">
                       {availableBuses.length === 0 ? (
-                        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
-                          No buses found for this route. Try different cities or dates.
+                        <div className="bg-white rounded-xl shadow-md p-10 text-center">
+                          <div className="text-5xl mb-4">🗓️</div>
+                          <h3 className="text-lg font-semibold text-gray-700 mb-1">
+                            No buses available
+                          </h3>
+                          <p className="text-gray-500 text-sm">
+                            {searchData.date
+                              ? `No buses found from ${searchData.from} to ${searchData.to} on ${new Date(searchData.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.`
+                              : `No buses found for this route. Try different cities.`}
+                          </p>
+                          {searchData.date && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Try selecting a different date — buses are only shown when they match your exact travel date.
+                            </p>
+                          )}
                         </div>
                       ) : (
-                        availableBuses.map((bus) => (
-                          <div
-                            key={bus.id}
-                            className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
-                          >
-                            <div className="p-6">
-                              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                                {/* Bus Info */}
-                                <div className="flex items-start space-x-4">
-                                  <div className="bg-blue-500/10 p-4 rounded-xl text-3xl">
-                                    {bus.logo}
+                        availableBuses.map((bus) => {
+                          const busDate = bus.departureDate
+                            ? new Date(bus.departureDate).toISOString().split('T')[0]
+                            : null;
+
+                          return (
+                            <div
+                              key={bus.id}
+                              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                            >
+                              <div className="p-6">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                                  {/* Bus Info */}
+                                  <div className="flex items-start space-x-4">
+                                    <div className="bg-blue-500/10 p-4 rounded-xl text-3xl">
+                                      {bus.logo}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                                        <h3 className="text-xl font-bold text-gray-800">{bus.company}</h3>
+                                        <span className="px-3 py-1 bg-blue-500/10 rounded-full text-xs font-semibold">{bus.type}</span>
+                                        {/* Departure date badge — always green since it matched */}
+                                        {busDate && (
+                                          <span className="px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-semibold">
+                                            📅 Departs {new Date(busDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-sm text-gray-500 mt-1">Bus No: {bus.busNumber}</p>
+                                      <div className="flex flex-wrap gap-2 mt-3">
+                                        {bus.amenities.map((amenity, index) => (
+                                          <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                                            {amenity}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div>
+
+                                  {/* Time & Price */}
+                                  <div className="mt-4 md:mt-0 flex flex-col md:items-end">
+                                    <div className="flex items-center space-x-4">
+                                      <div className="text-center">
+                                        <p className="text-sm text-gray-500">Departure</p>
+                                        <p className="text-xl font-bold text-gray-800">{bus.departureTime}</p>
+                                      </div>
+                                      <div className="text-center">
+                                        <p className="text-sm text-gray-500">Arrival</p>
+                                        <p className="text-xl font-bold text-gray-800">{bus.arrivalTime}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-4 mt-3">
+                                      <div className="text-right">
+                                        <p className="text-sm text-gray-500">Price per seat</p>
+                                        <p className="text-2xl font-bold text-blue-500">UGX {bus.price.toLocaleString()}</p>
+                                      </div>
+                                      <button
+                                        onClick={() => handleBusSelect(bus)}
+                                        className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+                                      >
+                                        Select Bus
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Seat Availability */}
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                  <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-2">
-                                      <h3 className="text-xl font-bold text-gray-800">
-                                        {bus.company}
-                                      </h3>
-                                      <span className="px-3 py-1 bg-blue-500/10 rounded-full text-xs font-semibold">
-                                        {bus.type}
+                                      <span className="text-sm text-gray-600">Available Seats:</span>
+                                      <span className="font-semibold text-green-600">
+                                        {bus.availableSeats}/{bus.totalSeats}
                                       </span>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      Bus No: {bus.busNumber}
-                                    </p>
-                                    <div className="flex flex-wrap gap-2 mt-3">
-                                      {bus.amenities.map((amenity, index) => (
-                                        <span
-                                          key={index}
-                                          className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
-                                        >
-                                          {amenity}
-                                        </span>
+                                    <div className="flex items-center space-x-1">
+                                      {[...Array(5)].map((_, i) => (
+                                        <div
+                                          key={i}
+                                          className={`w-2 h-2 rounded-full ${
+                                            i < Math.ceil((bus.availableSeats / bus.totalSeats) * 5)
+                                              ? 'bg-green-500'
+                                              : 'bg-gray-300'
+                                          }`}
+                                        />
                                       ))}
                                     </div>
                                   </div>
                                 </div>
-
-                                {/* Time & Price */}
-                                <div className="mt-4 md:mt-0 flex flex-col md:items-end">
-                                  {bus.departureDate && (
-                                    <span className="mb-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold self-end">
-                                      📅 {new Date(bus.departureDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                                    </span>
-                                  )}
-                                  <div className="flex items-center space-x-4">
-                                    <div className="text-center">
-                                      <p className="text-sm text-gray-500">Departure</p>
-                                      <p className="text-xl font-bold text-gray-800">
-                                        {bus.departureTime}
-                                      </p>
-                                    </div>
-                                    <div className="text-center">
-                                      <p className="text-sm text-gray-500">Arrival</p>
-                                      <p className="text-xl font-bold text-gray-800">
-                                        {bus.arrivalTime}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <p className="text-sm text-gray-500 mt-2">{bus.duration}</p>
-                                  <div className="flex items-center space-x-4 mt-3">
-                                    <div className="text-right">
-                                      <p className="text-sm text-gray-500">Price per seat</p>
-                                      <p className="text-2xl font-bold text-blue-500">
-                                        UGX {bus.price.toLocaleString()}
-                                      </p>
-                                    </div>
-                                    <button
-                                      onClick={() => handleBusSelect(bus)}
-                                      className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
-                                    >
-                                      Select Bus
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Seat Availability */}
-                              <div className="mt-4 pt-4 border-t border-gray-100">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-600">Available Seats:</span>
-                                    <span className="font-semibold text-green-600">
-                                      {bus.availableSeats}/{bus.totalSeats}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className={`w-2 h-2 rounded-full ${
-                                          i < Math.ceil((bus.availableSeats / bus.totalSeats) * 5)
-                                            ? "bg-green-500"
-                                            : "bg-gray-300"
-                                        }`}
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </div>
