@@ -14,7 +14,7 @@ const steps = [
     title: 'Compare',
     description: 'Compare prices, times, and operators side by side.',
     color: 'from-orange-500 to-orange-600',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop'
+    image: '/routes/compare.png'
   },
   {
     icon: Grid,
