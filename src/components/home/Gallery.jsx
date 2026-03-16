@@ -3,24 +3,24 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const galleryImages = [
   {
-    url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=400&fit=crop',
+    url: '/routes/jinja.jpg',
     title: 'Scenic Route',
     category: 'Journey'
   },
   {
-    url: 'https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?w=400&h=400&fit=crop',
+    url: '/routes/img2.jpg',
     title: 'Bus Terminal',
     category: 'Terminal'
+  },
+  {
+    url: '/routes/img3.jpg',
+    title: 'Highway Drive',
+    category: 'Experience'
   },
   {
     url: 'https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=400&h=400&fit=crop',
     title: 'Comfortable Seats',
     category: 'Interior'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=400&fit=crop',
-    title: 'Modern Bus',
-    category: 'Fleet'
   },
   {
     url: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=400&h=400&fit=crop',

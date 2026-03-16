@@ -55,7 +55,7 @@ const HeroSection = () => {
       {/* Background with overlay */}
       <div className="absolute inset-0">
         <img 
-          src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&h=400&fit=crop" 
+          src="/buses/bus9.jpg" 
           alt="Bus travel"
           className="w-full h-full object-cover"
         />

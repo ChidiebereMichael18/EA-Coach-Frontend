@@ -4,7 +4,7 @@ import { Star, Users, Award } from 'lucide-react';
 const operators = [
   {
     name: 'Nile Star Buses',
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop',
+    image: '/buses/bus1.jpg',
     rating: 4.5,
     routes: '15+',
     experience: '10+ years',
@@ -13,7 +13,7 @@ const operators = [
   },
   {
     name: 'Gateway Bus Service',
-    image: '/gateway.jpeg',
+    image: '/buses/bus2.jpg',
     rating: 4.3,
     routes: '20+',
     experience: '15+ years',
@@ -22,7 +22,7 @@ const operators = [
   },
   {
     name: 'Jaguar Executive Coaches',
-    image: '/Jaguar.jpeg',
+    image: '/buses/bus3.jpg',
     rating: 4.7,
     routes: '12+',
     experience: '8+ years',
@@ -31,7 +31,7 @@ const operators = [
   },
   {
     name: 'Trinity Bus',
-    image: '/trinity.jpeg',
+    image: '/buses/bus4.jpg',
     rating: 4.2,
     routes: '18+',
     experience: '12+ years',
@@ -40,7 +40,7 @@ const operators = [
   },
   {
     name: 'KK Coaches',
-    image: '/KK new coach 2.jpg.opt1082x804o0,0s1082x804.jpg',
+    image: '/buses/bus5.jpg',
     rating: 4.6,
     routes: '14+',
     experience: '20+ years',
@@ -49,7 +49,7 @@ const operators = [
   },
   {
     name: 'Mash Poa Buses',
-    image: '/mash poa.jpeg',
+    image: '/buses/bus6.jpg',
     rating: 4.4,
     routes: '10+',
     experience: '7+ years',
@@ -57,6 +57,7 @@ const operators = [
     features: ['AC', 'WiFi', 'Comfort']
   }
 ];
+
 
 const BusOperators = () => {
   return (
@@ -78,7 +79,7 @@ const BusOperators = () => {
                 alt={operator.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop';
+                  e.target.src = '/buses/bus10.jpg';
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>

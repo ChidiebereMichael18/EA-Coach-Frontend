@@ -8,7 +8,7 @@ const routes = [
     to: 'Jinja',
     price: '15,000',
     duration: '2 hours',
-    image: 'https://images.unsplash.com/photo-1570184016201-34e6393eea46?w=640&h=360&fit=crop',
+    image: '/routes/jinja.jpg',
     departure: '06:00 AM'
   },
   {
@@ -16,7 +16,7 @@ const routes = [
     to: 'Mbarara',
     price: '25,000',
     duration: '4 hours',
-    image: 'https://images.unsplash.com/photo-1583248363044-1c6d2e3b1e2a?w=640&h=360&fit=crop',
+    image: '/routes/img2.jpg',
     departure: '07:00 AM'
   },
   {
@@ -24,7 +24,7 @@ const routes = [
     to: 'Gulu',
     price: '30,000',
     duration: '5 hours',
-    image: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=640&h=360&fit=crop',
+    image: '/routes/img3.jpg',
     departure: '08:00 AM'
   },
   {
@@ -32,7 +32,7 @@ const routes = [
     to: 'Nairobi',
     price: '50,000',
     duration: '12 hours',
-    image: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=640&h=360&fit=crop',
+    image: '/buses/bus11.jpg',
     departure: '06:00 PM'
   }
 ];
