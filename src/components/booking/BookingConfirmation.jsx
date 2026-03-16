@@ -1,30 +1,75 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import { CheckCircle, Download, Printer, Share2, Calendar, MapPin, Clock, Users, CreditCard } from 'lucide-react';
 
 const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
   const ticketRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [aiTip, setAiTip] = useState('');
+
+  React.useEffect(() => {
+    if (bookingData?.to && import.meta.env.VITE_OPENAI_API_KEY) {
+      setAiTip('Loading personalized travel tip...');
+      const fetchAi = async () => {
+        try {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                { role: 'system', content: 'You are EA Coach AI. Generate a very brief 1-sentence fun fact or travel tip about the destination.' },
+                { role: 'user', content: `Destination: ${bookingData.to}` }
+              ],
+              max_tokens: 50
+            })
+          });
+          const data = await res.json();
+          if (data.choices && data.choices[0]) {
+            setAiTip(data.choices[0].message.content);
+          } else {
+            setAiTip('');
+          }
+        } catch (e) {
+          console.error('AI Error:', e);
+          setAiTip('');
+        }
+      };
+      fetchAi();
+    }
+  }, [bookingData?.to]);
 
   const handleDownload = async () => {
     const printElement = ticketRef.current;
-    if (!printElement) return;
+    if (!printElement) {
+       alert("Ticket element not found.");
+       return;
+    }
     
     setIsDownloading(true);
     try {
-      const canvas = await html2canvas(printElement, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = await domtoimage.toJpeg(printElement, { quality: 1.0, bgcolor: '#ffffff' });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const img = new Image();
+      img.src = imgData;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`EACoach-Ticket-${bookingId}.pdf`);
     } catch (err) {
       console.error("Failed to download ticket", err);
-      alert("Failed to generate PDF ticket. Please try again.");
+      alert("Failed to generate PDF ticket: " + (err.message || String(err)));
     } finally {
       setIsDownloading(false);
     }
@@ -138,12 +183,22 @@ const BookingConfirmation = ({ bookingId, bookingData, onNewBooking }) => {
           </div>
 
           {/* Payment Method */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
+          <div className="border-t border-gray-200 pt-4 mt-4 mb-4">
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Payment Method</span>
               <span className="font-medium capitalize">{bookingData.paymentMethod}</span>
             </div>
           </div>
+
+          {/* AI Tip Section */}
+          {aiTip && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+              <p className="text-sm font-semibold text-blue-800 mb-1 flex items-center gap-2">
+                 ✨ EA Coach AI Tip for {bookingData.to}
+              </p>
+              <p className="text-sm text-gray-700 italic">"{aiTip}"</p>
+            </div>
+          )}
         </div>
       </div>
 

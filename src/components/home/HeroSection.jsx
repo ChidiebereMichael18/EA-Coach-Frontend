@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Search, ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     from: '',
     to: '',
@@ -44,8 +46,8 @@ const HeroSection = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle search
-    console.log('Searching:', formData);
+    const query = new URLSearchParams(formData).toString();
+    navigate(`/booking?${query}`);
   };
 
   return (

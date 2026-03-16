@@ -215,7 +215,7 @@ const DashboardOverview = () => {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-green-100 p-3 rounded-lg">
-              <DollarSign className="text-green-600" size={24} />
+              {/* <DollarSign className="text-green-600" size={24} /> */}
             </div>
           </div>
           <p className="text-2xl font-bold text-gray-800">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image';
 import { jsPDF } from 'jspdf';
 import {
   Calendar,
@@ -34,6 +34,42 @@ const BookingHistory = () => {
   const [showModal, setShowModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const ticketRef = useRef(null);
+  const [aiTip, setAiTip] = useState('');
+
+  useEffect(() => {
+    if (showModal && selectedBooking?.route?.to && import.meta.env.VITE_OPENAI_API_KEY) {
+      setAiTip('Loading personalized travel tip...');
+      const fetchAi = async () => {
+        try {
+          const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                { role: 'system', content: 'You are EA Coach AI. Generate a very brief 1-sentence fun fact or travel tip about the destination.' },
+                { role: 'user', content: `Destination: ${selectedBooking.route.to}` }
+              ],
+              max_tokens: 50
+            })
+          });
+          const data = await res.json();
+          if (data.choices && data.choices[0]) {
+            setAiTip(data.choices[0].message.content);
+          } else {
+            setAiTip('');
+          }
+        } catch (e) {
+          console.error('AI Error:', e);
+          setAiTip('');
+        }
+      };
+      fetchAi();
+    }
+  }, [showModal, selectedBooking]);
 
   const handleViewDetails = (booking) => {
     setSelectedBooking(booking);
@@ -43,29 +79,40 @@ const BookingHistory = () => {
   const handleDownloadTicket = (booking) => {
     setSelectedBooking(booking);
     setShowModal(true);
-    // Allow modal to render fully before generating PDF
+    // Allow modal to render fully and let AI tip load before generating PDF
     setTimeout(() => {
       generatePDF(booking);
-    }, 300);
+    }, 800);
   };
 
   const generatePDF = async (booking) => {
     const printElement = ticketRef.current;
-    if (!printElement) return;
+    if (!printElement) {
+       alert("Ticket element not found. Please try again.");
+       return;
+    }
     
     setIsDownloading(true);
     try {
-      const canvas = await html2canvas(printElement, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = await domtoimage.toJpeg(printElement, { quality: 1.0, bgcolor: '#ffffff' });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      // We need to calculate the height based on the aspect ratio.
+      // Since domtoimage gives us a data URL, let's load it into an image to get dimensions
+      const img = new Image();
+      img.src = imgData;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`EACoach-Ticket-${booking.bookingId || booking._id}.pdf`);
     } catch (err) {
       console.error("Failed to download ticket", err);
-      alert("Failed to generate PDF ticket.");
+      alert("Failed to generate PDF ticket: " + (err.message || String(err)));
     } finally {
       setIsDownloading(false);
     }
@@ -349,6 +396,16 @@ const BookingHistory = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* AI Tip Section */}
+                {aiTip && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-8 border border-blue-100">
+                    <p className="text-sm font-semibold text-blue-800 mb-1 flex items-center gap-2">
+                       ✨ EA Coach AI Tip for {selectedBooking.route?.to}
+                    </p>
+                    <p className="text-sm text-gray-700 italic">"{aiTip}"</p>
+                  </div>
+                )}
 
                 {/* Footer details */}
                 <div className="grid grid-cols-3 gap-4 bg-white border-t-2 border-gray-100 pt-6">

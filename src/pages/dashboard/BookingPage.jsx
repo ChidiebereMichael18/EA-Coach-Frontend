@@ -107,16 +107,23 @@ const BookingPage = () => {
     }
   }, [selectedBus, currentStep]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.from || !formData.to) {
-      setSearchError("Please select from and destination.");
-      return;
+  useEffect(() => {
+    const from = queryParams.get("from");
+    const to = queryParams.get("to");
+    if (from && to) {
+      handleSearch({ 
+        from, 
+        to, 
+        date: queryParams.get("date") || formData.date 
+      });
     }
-    setSearchData({ ...formData });
+  }, []);
+
+  const handleSearch = (searchParams) => {
+    setSearchData({ ...searchParams });
     setSearchError(null);
     setSearchLoading(true);
-    getBuses({ from: formData.from, to: formData.to })
+    getBuses({ from: searchParams.from, to: searchParams.to })
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setAvailableBuses(res.data.map(mapBusFromApi));
@@ -126,6 +133,15 @@ const BookingPage = () => {
       })
       .catch(() => setSearchError("Failed to load buses."))
       .finally(() => setSearchLoading(false));
+  };
+
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!formData.from || !formData.to) {
+      setSearchError("Please select from and destination.");
+      return;
+    }
+    handleSearch(formData);
   };
 
   const handleBusSelect = (bus) => {

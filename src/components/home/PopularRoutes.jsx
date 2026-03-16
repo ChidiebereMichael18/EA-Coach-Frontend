@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, MapPin, Clock, DollarSign } from 'lucide-react';
+import { ArrowRight, MapPin, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const routes = [
@@ -80,7 +80,6 @@ const PopularRoutes = () => {
                   <span>{route.duration}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-primary font-bold">
-                  <DollarSign size={16} />
                   <span>UGX {route.price}</span>
                 </div>
               </div>
