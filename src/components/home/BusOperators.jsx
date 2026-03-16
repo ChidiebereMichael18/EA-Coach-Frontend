@@ -12,8 +12,8 @@ const operators = [
     features: ['AC', 'WiFi', 'USB Charging']
   },
   {
-    name: 'Mash Poa Buses',
-    image: '/buses/bus2.jpg',
+    name: 'KK Coaches',
+    image: '/buses/kk.jpg',
     rating: 4.3,
     routes: '20+',
     experience: '15+ years',
@@ -21,8 +21,8 @@ const operators = [
     features: ['AC', 'Entertainment', 'Snacks']
   },
   {
-    name: 'Mash Poa Buses',
-    image: '/buses/bus3.jpg',
+    name: 'Gateway Services',
+    image: '/buses/gateway.jpg',
     rating: 4.7,
     routes: '12+',
     experience: '8+ years',
@@ -39,8 +39,8 @@ const operators = [
     features: ['AC', 'WiFi', 'Comfortable Seats']
   },
   {
-    name: 'Tausi',
-    image: '/buses/bus5.jpg',
+    name: 'Jaguar Executive',
+    image: '/buses/jaguar.jpg',
     rating: 4.6,
     routes: '14+',
     experience: '20+ years',

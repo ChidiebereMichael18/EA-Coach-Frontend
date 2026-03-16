@@ -44,7 +44,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'snacks', 'blanket'],
       rating: 4.5,
       reviews: 128,
-      image: '/buses/bus1.jpg',
+      image: '/routes/img2.jpg',
       busNumber: 'JX-001',
       stops: ['Kampala', 'Jinja', 'Tororo', 'Malaba', 'Eldoret', 'Nairobi']
     },
@@ -65,7 +65,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'snacks'],
       rating: 4.3,
       reviews: 95,
-      image: '/buses/bus2.jpg',
+      image: '/routes/img3.jpg',
       busNumber: 'GW-002',
       stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali']
     },
@@ -86,7 +86,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
       rating: 4.7,
       reviews: 156,
-      image: '/buses/bus3.jpg',
+      image: '/routes/img4.jpg',
       busNumber: 'NS-003',
       stops: ['Jinja', 'Tororo', 'Malaba', 'Eldoret', 'Nairobi']
     },
@@ -107,7 +107,7 @@ const RoutesPage = () => {
       amenities: ['ac', 'usb'],
       rating: 4.2,
       reviews: 67,
-      image: '/buses/bus4.jpg',
+      image: '/routes/img5.jpg',
       busNumber: 'MP-004',
       stops: ['Mbarara', 'Kabale', 'Kigali']
     },
@@ -128,7 +128,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals', 'blanket'],
       rating: 4.8,
       reviews: 203,
-      image: '/buses/bus11.jpg',
+      image: '/routes/img6.jpg',
       busNumber: 'RE-005',
       stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Dar es Salaam']
     },
@@ -149,7 +149,7 @@ const RoutesPage = () => {
       amenities: ['ac', 'usb'],
       rating: 4.0,
       reviews: 42,
-      image: '/buses/bus5.jpg',
+      image: '/routes/jinja.jpg',
       busNumber: 'UB-006',
       stops: ['Gulu', 'Kitgum', 'Juba']
     },
@@ -170,7 +170,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'snacks'],
       rating: 4.4,
       reviews: 89,
-      image: '/buses/bus10.jpg',
+      image: '/routes/img7.jpg',
       busNumber: 'KC-007',
       stops: ['Kampala', 'Gulu', 'Kitgum', 'Juba']
     },
@@ -191,7 +191,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
       rating: 4.6,
       reviews: 112,
-      image: '/buses/bus8.jpg',
+      image: '/routes/img8.jpg',
       busNumber: 'LB-008',
       stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
     },
@@ -212,7 +212,7 @@ const RoutesPage = () => {
       amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
       rating: 4.6,
       reviews: 112,
-      image: '/buses/bus9.jpg',
+      image: '/routes/img9.jpg',
       busNumber: 'LB-008',
       stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
     },
