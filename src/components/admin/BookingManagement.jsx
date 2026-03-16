@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import emailjs from '@emailjs/browser';
+import domtoimage from 'dom-to-image';
+import { jsPDF } from 'jspdf';
 import { getBookings } from '../../services/adminService';
-import { 
-  Calendar, 
-  Search, 
-  Filter, 
+import {
+  Calendar,
+  Search,
+  Filter,
   Eye,
   Download,
   Printer,
@@ -29,6 +32,9 @@ const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+  const ticketRef = useRef(null);
 
   // Fetch bookings on component mount
   useEffect(() => {
@@ -61,7 +67,7 @@ const BookingManagement = () => {
 
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'confirmed':
         return 'bg-green-100 text-green-600';
       case 'pending':
@@ -76,7 +82,7 @@ const BookingManagement = () => {
   };
 
   const getPaymentStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-600';
       case 'pending':
@@ -89,14 +95,14 @@ const BookingManagement = () => {
   };
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
+    const matchesSearch =
       (booking.bookingId && booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (booking.user && booking.user.name && booking.user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (booking.user && booking.user.email && booking.user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (booking.route && `${booking.route.from} ${booking.route.to}`.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesStatus = filterStatus === 'all' || booking.bookingStatus === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -107,6 +113,90 @@ const BookingManagement = () => {
     completed: bookings.filter(b => b.bookingStatus === 'completed').length,
     cancelled: bookings.filter(b => b.bookingStatus === 'cancelled').length,
     totalRevenue: bookings.reduce((acc, b) => acc + b.totalAmount, 0)
+  };
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const generatePDFBase64 = async () => {
+    const el = ticketRef.current;
+    if (!el) throw new Error('Ticket element not found');
+    const imgData = await domtoimage.toJpeg(el, { quality: 1.0, bgcolor: '#ffffff' });
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const img = new Image();
+    img.src = imgData;
+    await new Promise((resolve) => { img.onload = resolve; });
+    const pdfHeight = (img.height * pdfWidth) / img.width;
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    // Return raw base64 string (no data-url prefix)
+    return pdf.output('datauristring');
+  };
+
+  const handleDownloadTicket = async () => {
+    setIsSending(true);
+    try {
+      const el = ticketRef.current;
+      if (!el) { alert('Ticket element not found'); return; }
+      const imgData = await domtoimage.toJpeg(el, { quality: 1.0, bgcolor: '#ffffff' });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const img = new Image();
+      img.src = imgData;
+      await new Promise((resolve) => { img.onload = resolve; });
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`EACoach-Ticket-${showBookingDetails.bookingId || showBookingDetails._id}.pdf`);
+    } catch (err) {
+      alert('Failed to generate PDF: ' + err.message);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    const userEmail = showBookingDetails?.user?.email;
+    if (!userEmail) {
+      showToast('error', 'No email address found for this customer.');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const pdfDataUri = await generatePDFBase64();
+
+      // EmailJS template parameters
+      const templateParams = {
+        to_name: showBookingDetails.user.name || 'Valued Customer',
+        to_email: userEmail,
+        booking_id: showBookingDetails.bookingId || showBookingDetails._id,
+        from_city: showBookingDetails.route.from,
+        to_city: showBookingDetails.route.to,
+        departure_date: showBookingDetails.route.departureDate
+          ? new Date(showBookingDetails.route.departureDate).toLocaleDateString()
+          : 'TBD',
+        departure_time: showBookingDetails.route.departureTime || 'TBD',
+        seats: (showBookingDetails.seats || []).join(', ') || 'TBD',
+        total_amount: `UGX ${Number(showBookingDetails.totalAmount).toLocaleString()}`,
+        ticket_pdf: pdfDataUri,
+      };
+
+      // ⚠️ Replace these with your actual EmailJS credentials:
+      const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID  || 'YOUR_SERVICE_ID';
+      const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
+      const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  || 'YOUR_PUBLIC_KEY';
+
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
+
+      showToast('success', `Reminder sent successfully to ${userEmail} ✓`);
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      showToast('error', 'Failed to send email: ' + (err?.text || err?.message || String(err)));
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -201,99 +291,99 @@ const BookingManagement = () => {
 
       {/* Bookings Table */}
       {!isLoading && !error && (
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Booking ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Route
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Date & Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Seats
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredBookings.map((booking) => (
-                <tr key={booking._id || booking.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-medium text-gray-900">{booking.bookingId}</p>
-                    <p className="text-xs text-gray-500">{new Date(booking.createdAt || booking.bookingDate).toLocaleDateString()}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
-                        {booking.user.name ? booking.user.name.charAt(0).toUpperCase() : '?'}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Booking ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Route
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Date & Time
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Seats
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Payment
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredBookings.map((booking) => (
+                  <tr key={booking._id || booking.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-medium text-gray-900">{booking.bookingId}</p>
+                      <p className="text-xs text-gray-500">{new Date(booking.createdAt || booking.bookingDate).toLocaleDateString()}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
+                          {booking.user.name ? booking.user.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">{booking.user.name}</p>
+                          <p className="text-xs text-gray-500">{booking.user.phone || ''}</p>
+                        </div>
                       </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-900">{booking.user.name}</p>
-                        <p className="text-xs text-gray-500">{booking.user.phone || ''}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-1">
+                        <MapPin size={12} className="text-gray-400" />
+                        <span className="text-sm text-gray-600">{booking.route.from} → {booking.route.to}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-1">
-                      <MapPin size={12} className="text-gray-400" />
-                      <span className="text-sm text-gray-600">{booking.route.from} → {booking.route.to}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{booking.bus.company || booking.bus.busType || ''} {booking.bus.busNumber ? `(${booking.bus.busNumber})` : ''}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-gray-600">{booking.route.departureDate ? new Date(booking.route.departureDate).toLocaleDateString() : ''}</p>
-                    <p className="text-xs text-gray-500">{booking.route.departureTime || ''} {booking.route.arrivalTime ? `- ${booking.route.arrivalTime}` : ''}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-1">
-                      <Users size={12} className="text-gray-400" />
-                      <span className="text-sm text-gray-600">{booking.seats.join(', ')}</span>
-                    </div>
-                    <p className="text-xs text-gray-500">{booking.passengers.length} passenger(s)</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-semibold text-gray-900">UGX {booking.totalAmount.toLocaleString()}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(booking.paymentStatus)}`}>
-                      {booking.paymentStatus}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">{booking.paymentMethod}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.bookingStatus)}`}>
-                      {booking.bookingStatus}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => setShowBookingDetails(booking)}
-                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <Eye size={16} className="text-gray-600" />
-                      </button>
-                      {/* <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      <p className="text-xs text-gray-500 mt-1">{booking.bus.company || booking.bus.busType || ''} {booking.bus.busNumber ? `(${booking.bus.busNumber})` : ''}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-600">{booking.route.departureDate ? new Date(booking.route.departureDate).toLocaleDateString() : ''}</p>
+                      <p className="text-xs text-gray-500">{booking.route.departureTime || ''} {booking.route.arrivalTime ? `- ${booking.route.arrivalTime}` : ''}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-1">
+                        <Users size={12} className="text-gray-400" />
+                        <span className="text-sm text-gray-600">{booking.seats.join(', ')}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">{booking.passengers.length} passenger(s)</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-gray-900">UGX {booking.totalAmount.toLocaleString()}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(booking.paymentStatus)}`}>
+                        {booking.paymentStatus}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">{booking.paymentMethod}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.bookingStatus)}`}>
+                        {booking.bookingStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => setShowBookingDetails(booking)}
+                          className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Eye size={16} className="text-gray-600" />
+                        </button>
+                        {/* <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                         <Download size={16} className="text-gray-600" />
                       </button>
                       <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
@@ -302,40 +392,40 @@ const BookingManagement = () => {
                       <button className="p-1 hover:bg-red-100 rounded-lg transition-colors">
                         <XCircle size={16} className="text-red-600" />
                       </button> */}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Showing 1 to {filteredBookings.length} of {bookings.length} bookings
-            </p>
-            <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                Previous
-              </button>
-              <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
-                1
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                2
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                3
-              </button>
-              <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
-                Next
-              </button>
+          {/* Pagination */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing 1 to {filteredBookings.length} of {bookings.length} bookings
+              </p>
+              <div className="flex items-center space-x-2">
+                <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
+                  Previous
+                </button>
+                <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
+                  1
+                </button>
+                <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
+                  2
+                </button>
+                <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
+                  3
+                </button>
+                <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Booking Details Modal */}
@@ -354,7 +444,7 @@ const BookingManagement = () => {
               </div>
 
               {/* Booking Details Content */}
-              <div className="space-y-6">
+              <div className="space-y-6" ref={ticketRef}>
                 {/* Status Bar */}
                 <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(showBookingDetails.bookingStatus)}`}>
@@ -475,12 +565,24 @@ const BookingManagement = () => {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex justify-end space-x-3">
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-                    <Send size={16} />
-                    <span>Send Reminder</span>
+                <div className="flex justify-end space-x-3 mt-4 border-t pt-4" data-html2canvas-ignore>
+                  <button
+                    onClick={handleSendReminder}
+                    disabled={isSending}
+                    className="px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    {isSending ? (
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send size={16} />
+                    )}
+                    <span>{isSending ? 'Sending...' : 'Send Reminder'}</span>
                   </button>
-                  <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={handleDownloadTicket}
+                    disabled={isSending}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                  >
                     <Download size={16} />
                     <span>Download Ticket</span>
                   </button>
@@ -488,6 +590,16 @@ const BookingManagement = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-[9999] flex items-center space-x-3 px-5 py-3 rounded-xl shadow-xl text-white text-sm font-medium transition-all ${
+          toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          <span>{toast.type === 'success' ? '✓' : '✕'}</span>
+          <span>{toast.msg}</span>
         </div>
       )}
     </div>

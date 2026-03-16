@@ -22,7 +22,7 @@ import { createBooking } from "../../api/dashboardApi";
 const LOCATIONS = [
   "Kampala", "Jinja", "Mbarara", "Gulu", "Lira", "Arua", "Masaka", "Mbale",
   "Fort Portal", "Kabale", "Kasese", "Soroti", "Kitgum", "Hoima",
-  "Nairobi", "Kigali", "Dar es Salaam","Dodoma, Bujumbura, Arusha, Mombasa, Kisumu"
+  "Nairobi", "Kigali", "Dar es Salaam","Dodoma,", "Bujumbura", "Arusha", "Mombasa"," Kisumu"
 ];
 
 
@@ -38,17 +38,20 @@ function mapBusFromApi(bus) {
   return {
     _id: bus._id,
     id: bus._id,
-    company: bus.operator?.name || bus.busNumber || "—",
-    logo: "🚌",
-    type: bus.busType || "Standard",
-    departureTime: bus.route?.departureTime || "—",
-    arrivalTime: bus.route?.arrivalTime || "—",
-    duration: "—",
+    company: bus.operator?.name || bus.busNumber || '—',
+    logo: '🚌',
+    type: bus.busType || 'Standard',
+    departureTime: bus.route?.departureTime || '—',
+    arrivalTime: bus.route?.arrivalTime || '—',
+    departureDate: bus.route?.departureDate
+      ? new Date(bus.route.departureDate).toISOString().split('T')[0]
+      : null,
+    duration: '—',
     price: bus.route?.price ?? 0,
     amenities,
     availableSeats: bus.totalSeats ?? 53,
     totalSeats: bus.totalSeats ?? 53,
-    busNumber: bus.busNumber || "—",
+    busNumber: bus.busNumber || '—',
   };
 }
 
@@ -124,15 +127,15 @@ const BookingPage = () => {
     setSearchData({ ...searchParams });
     setSearchError(null);
     setSearchLoading(true);
-    getBuses({ from: searchParams.from, to: searchParams.to })
+    getBuses({ from: searchParams.from, to: searchParams.to, date: searchParams.date })
       .then((res) => {
         if (res.success && Array.isArray(res.data)) {
           setAvailableBuses(res.data.map(mapBusFromApi));
         } else {
-          setSearchError(res.errorMessage || "Failed to load buses.");
+          setSearchError(res.errorMessage || 'Failed to load buses.');
         }
       })
-      .catch(() => setSearchError("Failed to load buses."))
+      .catch(() => setSearchError('Failed to load buses.'))
       .finally(() => setSearchLoading(false));
   };
 
@@ -437,6 +440,11 @@ const BookingPage = () => {
 
                                 {/* Time & Price */}
                                 <div className="mt-4 md:mt-0 flex flex-col md:items-end">
+                                  {bus.departureDate && (
+                                    <span className="mb-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold self-end">
+                                      📅 {new Date(bus.departureDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </span>
+                                  )}
                                   <div className="flex items-center space-x-4">
                                     <div className="text-center">
                                       <p className="text-sm text-gray-500">Departure</p>

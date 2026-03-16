@@ -64,6 +64,7 @@ const BusManagement = () => {
     route: {
       from: '',
       to: '',
+      departureDate: '',
       departureTime: '',
       arrivalTime: '',
       distance: '',
@@ -124,6 +125,9 @@ const fetchBuses = async () => {
       route: {
         from: bus.route?.from || '',
         to: bus.route?.to || '',
+        departureDate: bus.route?.departureDate
+          ? new Date(bus.route.departureDate).toISOString().split('T')[0]
+          : '',
         departureTime: bus.route?.departureTime || '',
         arrivalTime: bus.route?.arrivalTime || '',
         distance: bus.route?.distance || '',
@@ -369,9 +373,16 @@ const fetchBuses = async () => {
                   <p className="text-xs text-gray-500 mb-1">Assigned Route:</p>
                   <div className="flex flex-wrap gap-1">
                     {bus.route && bus.route.from && bus.route.to ? (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                        {bus.route.from} - {bus.route.to}
-                      </span>
+                      <>
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                          {bus.route.from} → {bus.route.to}
+                        </span>
+                        {bus.route.departureDate && (
+                          <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
+                            📅 {new Date(bus.route.departureDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-xs text-gray-400">Unassigned</span>
                     )}
@@ -583,20 +594,33 @@ const fetchBuses = async () => {
                   </div>
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Departure Date *</label>
+                      <input
+                        type="date"
+                        required
+                        className="w-full px-4 py-2 border rounded-lg"
+                        value={formData.route.departureDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setFormData({ ...formData, route: { ...formData.route, departureDate: e.target.value } })}
+                      />
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Distance (e.g. 300km)</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 border rounded-lg" 
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 border rounded-lg"
                         value={formData.route.distance}
                         onChange={(e) => setFormData({ ...formData, route: { ...formData.route, distance: e.target.value } })}
                       />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
-                      <input 
-                        type="number" 
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price (UGX) *</label>
+                      <input
+                        type="number"
                         required
-                        className="w-full px-4 py-2 border rounded-lg" 
+                        className="w-full px-4 py-2 border rounded-lg"
                         value={formData.route.price}
                         onChange={(e) => setFormData({ ...formData, route: { ...formData.route, price: Number(e.target.value) } })}
                       />
