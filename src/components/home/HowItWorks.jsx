@@ -7,7 +7,7 @@ const steps = [
     title: 'Search',
     description: 'Choose your destination and date to view available buses.',
     color: 'from-blue-500 to-blue-600',
-    image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop'
+    image: '/buses/bus1.jpg'
   },
   {
     icon: List,
@@ -21,7 +21,7 @@ const steps = [
     title: 'Pick Seats',
     description: 'Select your preferred seats in an interactive layout.',
     color: 'from-green-500 to-green-600',
-    image: 'https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=400&h=300&fit=crop'
+    image: '/buses/bus6.jpg'
   },
   {
     icon: CreditCard,

@@ -3,7 +3,7 @@ import { Star, Users, Award } from 'lucide-react';
 
 const operators = [
   {
-    name: 'Nile Star Buses',
+    name: 'Mash Poa Buses',
     image: '/buses/bus1.jpg',
     rating: 4.5,
     routes: '15+',
@@ -12,7 +12,7 @@ const operators = [
     features: ['AC', 'WiFi', 'USB Charging']
   },
   {
-    name: 'Gateway Bus Service',
+    name: 'Mash Poa Buses',
     image: '/buses/bus2.jpg',
     rating: 4.3,
     routes: '20+',
@@ -21,7 +21,7 @@ const operators = [
     features: ['AC', 'Entertainment', 'Snacks']
   },
   {
-    name: 'Jaguar Executive Coaches',
+    name: 'Mash Poa Buses',
     image: '/buses/bus3.jpg',
     rating: 4.7,
     routes: '12+',
@@ -30,7 +30,7 @@ const operators = [
     features: ['AC', 'WiFi', 'USB', 'Meals']
   },
   {
-    name: 'Trinity Bus',
+    name: 'Tausi',
     image: '/buses/bus4.jpg',
     rating: 4.2,
     routes: '18+',
@@ -39,7 +39,7 @@ const operators = [
     features: ['AC', 'WiFi', 'Comfortable Seats']
   },
   {
-    name: 'KK Coaches',
+    name: 'Tausi',
     image: '/buses/bus5.jpg',
     rating: 4.6,
     routes: '14+',
@@ -48,7 +48,7 @@ const operators = [
     features: ['AC', 'WiFi', 'USB', 'Entertainment']
   },
   {
-    name: 'Mash Poa Buses',
+    name: 'Nile star',
     image: '/buses/bus6.jpg',
     rating: 4.4,
     routes: '10+',

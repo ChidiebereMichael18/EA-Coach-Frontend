@@ -33,10 +33,10 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+    <nav className={`sticky top-0 z-50 transition-all ${
       isOpen 
-        ? 'bg-white shadow-lg' 
-        : (scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-white')
+        ? 'duration-0 bg-white shadow-lg' 
+        : 'duration-300 ' + (scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg' : 'bg-white')
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -81,8 +81,8 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div
-          className={`fixed inset-0 bg-white z-40 transform transition-transform duration-300 ease-in-out md:hidden ${
-            isOpen ? 'translate-x-0' : 'translate-x-full'
+          className={`fixed inset-0 bg-white z-40 md:hidden transition-all duration-300 ease-out origin-top ${
+            isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
           }`}
           style={{ top: '64px' }}
         >

@@ -24,7 +24,7 @@ const routes = [
     to: 'Gulu',
     price: '30,000',
     duration: '5 hours',
-    image: '/routes/img3.jpg',
+    image: '/routes/img5.jpg',
     departure: '08:00 AM'
   },
   {
@@ -32,7 +32,7 @@ const routes = [
     to: 'Nairobi',
     price: '50,000',
     duration: '12 hours',
-    image: '/buses/bus11.jpg',
+    image: '/routes/img6.jpg',
     departure: '06:00 PM'
   }
 ];

@@ -18,27 +18,27 @@ const galleryImages = [
     category: 'Experience'
   },
   {
-    url: 'https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=400&h=400&fit=crop',
+    url: '/routes/img4.jpg',
     title: 'Comfortable Seats',
     category: 'Interior'
   },
   {
-    url: 'https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=400&h=400&fit=crop',
+    url: '/routes/img5.jpg',
     title: 'East Africa Travel',
     category: 'Destination'
   },
   {
-    url: 'https://images.unsplash.com/photo-1583248363044-1c6d2e3b1e2a?w=400&h=400&fit=crop',
+    url: '/routes/img6.jpg',
     title: 'Countryside',
     category: 'Scenery'
   },
   {
-    url: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&h=400&fit=crop',
+    url: '/routes/img2.jpg',
     title: 'Bus Journey',
     category: 'Experience'
   },
   {
-    url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop',
+    url: '/routes/img3.jpg',
     title: 'Travel Experience',
     category: 'Moments'
   }
