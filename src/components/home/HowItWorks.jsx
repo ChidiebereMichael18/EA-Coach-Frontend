@@ -14,7 +14,7 @@ const steps = [
     title: 'Compare',
     description: 'Compare prices, times, and operators side by side.',
     color: 'from-orange-500 to-orange-600',
-    image: '/routes/compare.png'
+    image: '/routes/compare2.webp'
   },
   {
     icon: Grid,
@@ -28,7 +28,7 @@ const steps = [
     title: 'Pay & Go',
     description: 'Pay via Card, MTN MoMo, Airtel Money and you\'re set.',
     color: 'from-purple-500 to-purple-600',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop'
+    image: '/routes/pay.webp'
   }
 ];
 

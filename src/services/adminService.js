@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // The backend proxy handles matching /api automatically
-const API_URL = '/api/admin';
+const API_URL = 'https://ea-coach-backend.onrender.com/api/admin';
 
 // Bus Management
 export const getBuses = async () => {
