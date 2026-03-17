@@ -180,14 +180,18 @@ const BookingManagement = () => {
         departure_time: showBookingDetails.route.departureTime || 'TBD',
         seats: (showBookingDetails.seats || []).join(', ') || 'TBD',
         total_amount: `UGX ${Number(showBookingDetails.totalAmount).toLocaleString()}`,
-        ticket_pdf: pdfDataUri,
+        // ticket_pdf: pdfDataUri,
       };
 
       // ⚠️ Replace these with your actual EmailJS credentials:
       const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID  || 'YOUR_SERVICE_ID';
       const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'YOUR_TEMPLATE_ID';
       const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  || 'YOUR_PUBLIC_KEY';
-
+      console.log({
+  EMAILJS_SERVICE_ID,
+  EMAILJS_TEMPLATE_ID,
+  EMAILJS_PUBLIC_KEY
+});
       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams, EMAILJS_PUBLIC_KEY);
 
       showToast('success', `Reminder sent successfully to ${userEmail} ✓`);
@@ -231,7 +235,7 @@ const BookingManagement = () => {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4">
           <p className="text-sm text-gray-500">Revenue</p>
-          <p className="text-2xl font-bold text-primary">
+          <p className="text-2xl font-bold text-blue-500">
             UGX {(stats.totalRevenue / 1000000).toFixed(1)}M
           </p>
         </div>
@@ -279,7 +283,7 @@ const BookingManagement = () => {
 
       {isLoading && (
         <div className="flex justify-center items-center py-10 py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
       )}
 
@@ -334,7 +338,7 @@ const BookingManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-secondary flex items-center justify-center text-white font-semibold text-sm">
                           {booking.user.name ? booking.user.name.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div className="ml-3">
@@ -410,7 +414,7 @@ const BookingManagement = () => {
                 <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
                   Previous
                 </button>
-                <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
+                <button className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm">
                   1
                 </button>
                 <button className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">
@@ -551,7 +555,7 @@ const BookingManagement = () => {
                     </div>
                     <div className="flex justify-between pt-2 border-t">
                       <span className="font-bold">Total</span>
-                      <span className="font-bold text-primary">UGX {showBookingDetails.totalAmount.toLocaleString()}</span>
+                      <span className="font-bold text-blue-400">UGX {showBookingDetails.totalAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -581,7 +585,7 @@ const BookingManagement = () => {
                   <button
                     onClick={handleDownloadTicket}
                     disabled={isSending}
-                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
                   >
                     <Download size={16} />
                     <span>Download Ticket</span>

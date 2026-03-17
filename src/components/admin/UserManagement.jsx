@@ -11,8 +11,11 @@ import {
   CheckCircle,
   Shield,
   AlertCircle,
+  X,
+  Eye,
+  EyeOff
 } from 'lucide-react';
-import { getAdminUsers } from '../../api/adminApi';
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } from '../../api/adminApi';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,8 +24,20 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'user'
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchUsers = () => {
+    setLoading(true);
     getAdminUsers()
       .then((res) => {
         if (res.success) setUsers(res.data || []);
@@ -30,6 +45,10 @@ const UserManagement = () => {
       })
       .catch(() => setError('Failed to load users'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   const filteredUsers = users.filter((user) => {
@@ -57,6 +76,114 @@ const UserManagement = () => {
     }
   };
 
+  const handleOpenModal = (user = null) => {
+    if (user) {
+      setEditingUser(user);
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        password: '', // Don't pre-fill password for editing
+        phone: user.phone || '',
+        role: user.role || 'user'
+      });
+    } else {
+      setEditingUser(null);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        role: 'user'
+      });
+    }
+    setError(null);
+    setShowPassword(false);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingUser(null);
+    setError(null);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setError(null);
+
+    try {
+      let res;
+      if (editingUser) {
+        // If editing, only send password if it was changed
+        const updateData = { ...formData };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        res = await updateAdminUser(editingUser._id, updateData);
+      } else {
+        res = await createAdminUser(formData);
+      }
+
+      if (res.success) {
+        handleCloseModal();
+        fetchUsers();
+      } else {
+        setError(res.errorMessage || `Failed to ${editingUser ? 'update' : 'create'} user`);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      setActionLoading(true);
+      try {
+        const res = await deleteAdminUser(id);
+        if (res.success) {
+          fetchUsers();
+        } else {
+          setError(res.errorMessage || 'Failed to delete user');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred while deleting');
+      } finally {
+        setActionLoading(false);
+      }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedUsers.length} users?`)) {
+      setActionLoading(true);
+      try {
+        // Run deletions in parallel
+        const promises = selectedUsers.map(id => deleteAdminUser(id));
+        const results = await Promise.all(promises);
+        
+        const failedCount = results.filter(r => !r.success).length;
+        if (failedCount > 0) {
+          setError(`Failed to delete ${failedCount} user(s).`);
+        }
+        
+        setSelectedUsers([]);
+        fetchUsers();
+      } catch (err) {
+        setError('An unexpected error occurred during bulk deletion');
+      } finally {
+        setActionLoading(false);
+      }
+    }
+  };
+
   const adminCount = users.filter((u) => u.role === 'admin').length;
 
   return (
@@ -67,7 +194,10 @@ const UserManagement = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">User Management</h1>
           <p className="text-gray-600">Manage users, roles, and permissions</p>
         </div>
-        <button className="mt-4 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+        <button 
+          onClick={() => handleOpenModal()}
+          className="mt-4 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+        >
           <UserPlus size={18} />
           <span>Add New User</span>
         </button>
@@ -163,8 +293,12 @@ const UserManagement = () => {
               {/* <button className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600">
                 Suspend
               </button> */}
-              <button className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">
-                Delete
+              <button 
+                onClick={handleBulkDelete}
+                disabled={actionLoading}
+                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+              >
+                {actionLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
@@ -248,13 +382,28 @@ const UserManagement = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <button type="button" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleOpenModal(user)}
+                        type="button" 
+                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Edit User"
+                      >
                         <Edit2 size={16} className="text-gray-600" />
                       </button>
-                      <button type="button" className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
+                      <a 
+                        href={`mailto:${user.email}`}
+                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors inline-block"
+                        title="Send Email"
+                      >
                         <Mail size={16} className="text-gray-600" />
-                      </button>
-                      <button type="button" className="p-1 hover:bg-red-100 rounded-lg transition-colors">
+                      </a>
+                      <button 
+                        onClick={() => handleDeleteUser(user._id)}
+                        disabled={actionLoading}
+                        type="button" 
+                        className="p-1 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                        title="Delete User"
+                      >
                         <Trash2 size={16} className="text-red-600" />
                       </button>
                     </div>
@@ -272,6 +421,134 @@ const UserManagement = () => {
         </div>
       </div>
         </>
+      )}
+
+      {/* User Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </h2>
+              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="John Doe"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password {editingUser && <span className="text-gray-400 font-normal text-xs">(Leave blank to keep current)</span>}
+                    {!editingUser && <span className="text-red-500">*</span>}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required={!editingUser}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                      placeholder={editingUser ? "••••••••" : "Enter password"}
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    User Role
+                  </label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="user">Regular User</option>
+                    {/* <option value="admin">Administrator</option> */}
+                  </select>
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3 rounded-b-xl">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="user-form"
+                disabled={actionLoading}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center"
+              >
+                {actionLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                )}
+                {editingUser ? 'Save Changes' : 'Create User'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

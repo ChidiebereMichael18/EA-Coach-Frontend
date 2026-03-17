@@ -22,6 +22,18 @@ export async function getAdminUsers() {
   return res;
 }
 
+export async function createAdminUser(body) {
+  return request('POST', '/users', body);
+}
+
+export async function updateAdminUser(id, body) {
+  return request('PUT', `/users/${id}`, body);
+}
+
+export async function deleteAdminUser(id) {
+  return request('DELETE', `/users/${id}`);
+}
+
 export async function getAdminBuses() {
   const res = await request('GET', '/buses');
   if (res.success) return { success: true, data: Array.isArray(res.data) ? res.data : [] };
