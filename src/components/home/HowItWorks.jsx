@@ -7,7 +7,7 @@ const steps = [
     title: 'Search',
     description: 'Choose your destination and date to view available buses.',
     color: 'from-blue-500 to-blue-600',
-    image: '/buses/bus1.jpg'
+    image: '/routes/search.webp'
   },
   {
     icon: List,
@@ -40,42 +40,54 @@ const HowItWorks = () => {
         Book your bus ticket in four simple steps
       </p>
 
-      <div className="relative">
-        {/* Connection Line (hidden on mobile) */}
-        <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-secondary to-primary transform -translate-y-1/2"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          return (
+            <div key={index} className="group relative">
+              {/* Arrow connector (between cards, desktop only) */}
+              {index < steps.length - 1 && (
+                <div className="hidden lg:flex absolute -right-3 top-28 z-10 items-center justify-center w-6 h-6">
+                  <svg className="text-gray-300 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <div key={index} className="relative group">
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
-                  <div className="h-32 overflow-hidden">
-                    <img
-                      src={step.image}
-                      alt={step.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+              <div className="bg-white rounded-2xl shadow-md overflow-hidden transform transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl h-full flex flex-col">
+
+                {/* Image block — tall, with gradient overlay */}
+                <div className="relative h-52 overflow-hidden flex-shrink-0">
+                  <img
+                    src={step.image}
+                    alt={step.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  {/* Dark gradient from bottom for icon area */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                  {/* Step number badge — top left */}
+                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md">
+                    <span className={`text-sm font-black bg-gradient-to-r ${step.color} bg-clip-text text-transparent`}>
+                      {index + 1}
+                    </span>
                   </div>
-                  <div className="p-6">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${step.color} flex items-center justify-center mb-4 -mt-10 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="text-white" size={28} />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 flex items-center">
-                      <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mr-2">
-                        {index + 1}.
-                      </span>
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {step.description}
-                    </p>
+
+                  {/* Icon — bottom left, on overlay */}
+                  <div className={`absolute bottom-3 left-4 w-12 h-12 rounded-xl bg-gradient-to-r ${step.color} flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110`}>
+                    <Icon className="text-white" size={22} />
                   </div>
                 </div>
+
+                {/* Text content */}
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-1">{step.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{step.description}</p>
+                </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

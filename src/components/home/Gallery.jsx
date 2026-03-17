@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const galleryImages = [
   {
-    url: '/routes/jinja.jpg',
+    url: '/routes/jinja2.jpg',
     title: 'Scenic Route',
     category: 'Journey'
   },

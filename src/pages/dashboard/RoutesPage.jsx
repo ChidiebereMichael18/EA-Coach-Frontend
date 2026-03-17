@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Bus, 
-  Search, 
+import { getBuses } from '../../api/busApi';
+import {
+  Bus,
   ArrowRight,
   Star,
   Wifi,
@@ -19,207 +16,79 @@ import {
   Grid3x3,
   List,
   Download,
-  Share2
+  Share2,
+  Loader,
+  Calendar,
 } from 'lucide-react';
+
+// Local image pool — cycled by index so images always show
+const IMAGE_POOL = [
+  '/routes/img2.jpg',
+  '/routes/img3.jpg',
+  '/routes/img4.jpg',
+  '/routes/img5.jpg',
+  '/routes/img6.jpg',
+  '/routes/jinja2.jpg',
+  '/routes/img7.jpg',
+  '/routes/img8.jpg',
+  '/routes/img9.jpg',
+];
+
+function mapBusToRoute(bus, index) {
+  const a = bus.amenities || {};
+  const amenities = [
+    a.wifi && 'wifi',
+    a.ac && 'ac',
+    a.usbCharging && 'usb',
+    a.entertainment && 'entertainment',
+    a.bulletproof && 'blanket',
+  ].filter(Boolean);
+
+  return {
+    id: bus._id,
+    from: bus.route?.from || '—',
+    to: bus.route?.to || '—',
+    price: bus.route?.price ?? 0,
+    busCompany: bus.operator?.name || '—',
+    busType: bus.busType || 'Standard',
+    departureTime: bus.route?.departureTime || '—',
+    arrivalTime: bus.route?.arrivalTime || '—',
+    departureDate: bus.route?.departureDate
+      ? new Date(bus.route.departureDate).toISOString().split('T')[0]
+      : null,
+    availableSeats: bus.totalSeats ?? 53,
+    totalSeats: bus.totalSeats ?? 53,
+    amenities,
+    rating: 4.5,
+    image: IMAGE_POOL[index % IMAGE_POOL.length],
+    busNumber: bus.busNumber || '—',
+    stops: [bus.route?.from, bus.route?.to].filter(Boolean),
+  };
+}
 
 const RoutesPage = () => {
   const [viewMode, setViewMode] = useState('grid');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [routes, setRoutes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const routes = [
-    {
-      id: 1,
-      from: 'Kampala',
-      to: 'Nairobi',
-      distance: '800 km',
-      duration: '12h',
-      price: 150000,
-      busCompany: 'Mash Poa',
-      busType: 'Executive',
-      departureTime: '08:00',
-      arrivalTime: '20:00',
-      availableSeats: 45,
-      totalSeats: 53,
-      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'snacks', 'blanket'],
-      rating: 4.5,
-      reviews: 128,
-      image: '/routes/img2.jpg',
-      busNumber: 'JX-001',
-      stops: ['Kampala', 'Jinja', 'Tororo', 'Malaba', 'Eldoret', 'Nairobi']
-    },
-    {
-      id: 2,
-      from: 'Kampala',
-      to: 'Kigali',
-      distance: '500 km',
-      duration: '8h',
-      price: 120000,
-      busCompany: 'Mash Poa',
-      busType: 'Luxury',
-      departureTime: '09:00',
-      arrivalTime: '17:00',
-      availableSeats: 38,
-      totalSeats: 53,
-      days: ['Mon', 'Wed', 'Fri', 'Sun'],
-      amenities: ['wifi', 'ac', 'usb', 'snacks'],
-      rating: 4.3,
-      reviews: 95,
-      image: '/routes/img3.jpg',
-      busNumber: 'GW-002',
-      stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali']
-    },
-    {
-      id: 3,
-      from: 'Jinja',
-      to: 'Nairobi',
-      distance: '750 km',
-      duration: '11h',
-      price: 140000,
-      busCompany: 'Mash Poa',
-      busType: 'VIP',
-      departureTime: '07:00',
-      arrivalTime: '18:00',
-      availableSeats: 42,
-      totalSeats: 53,
-      days: ['Tue', 'Thu', 'Sat'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
-      rating: 4.7,
-      reviews: 156,
-      image: '/routes/img4.jpg',
-      busNumber: 'NS-003',
-      stops: ['Jinja', 'Tororo', 'Malaba', 'Eldoret', 'Nairobi']
-    },
-    {
-      id: 4,
-      from: 'Mbarara',
-      to: 'Kigali',
-      distance: '300 km',
-      duration: '5h',
-      price: 80000,
-      busCompany: 'Tausi',
-      busType: 'Standard',
-      departureTime: '10:00',
-      arrivalTime: '15:00',
-      availableSeats: 50,
-      totalSeats: 53,
-      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-      amenities: ['ac', 'usb'],
-      rating: 4.2,
-      reviews: 67,
-      image: '/routes/img5.jpg',
-      busNumber: 'MP-004',
-      stops: ['Mbarara', 'Kabale', 'Kigali']
-    },
-    {
-      id: 5,
-      from: 'Kampala',
-      to: 'Dar es Salaam',
-      distance: '1200 km',
-      duration: '24h',
-      price: 250000,
-      busCompany: 'Royal Express',
-      busType: 'Executive',
-      departureTime: '06:00',
-      arrivalTime: '06:00',
-      availableSeats: 35,
-      totalSeats: 53,
-      days: ['Mon', 'Thu'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals', 'blanket'],
-      rating: 4.8,
-      reviews: 203,
-      image: '/routes/img6.jpg',
-      busNumber: 'RE-005',
-      stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Dar es Salaam']
-    },
-    {
-      id: 6,
-      from: 'Gulu',
-      to: 'Juba',
-      distance: '400 km',
-      duration: '8h',
-      price: 90000,
-      busCompany: 'Tausi',
-      busType: 'Standard',
-      departureTime: '08:00',
-      arrivalTime: '16:00',
-      availableSeats: 48,
-      totalSeats: 53,
-      days: ['Mon', 'Wed', 'Fri'],
-      amenities: ['ac', 'usb'],
-      rating: 4.0,
-      reviews: 42,
-      image: '/routes/jinja.jpg',
-      busNumber: 'UB-006',
-      stops: ['Gulu', 'Kitgum', 'Juba']
-    },
-    {
-      id: 7,
-      from: 'Kampala',
-      to: 'Juba',
-      distance: '700 km',
-      duration: '14h',
-      price: 180000,
-      busCompany: 'Gateway',
-      busType: 'Luxury',
-      departureTime: '07:00',
-      arrivalTime: '21:00',
-      availableSeats: 40,
-      totalSeats: 53,
-      days: ['Tue', 'Thu', 'Sat'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'snacks'],
-      rating: 4.4,
-      reviews: 89,
-      image: '/routes/img7.jpg',
-      busNumber: 'KC-007',
-      stops: ['Kampala', 'Gulu', 'Kitgum', 'Juba']
-    },
-    {
-      id: 8,
-      from: 'Kampala',
-      to: 'Bujumbura',
-      distance: '900 km',
-      duration: '18h',
-      price: 200000,
-      busCompany: 'Lake Bus',
-      busType: 'Executive',
-      departureTime: '05:00',
-      arrivalTime: '23:00',
-      availableSeats: 32,
-      totalSeats: 53,
-      days: ['Wed', 'Sun'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
-      rating: 4.6,
-      reviews: 112,
-      image: '/routes/img8.jpg',
-      busNumber: 'LB-008',
-      stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
-    },
-    {
-      id: 9,
-      from: 'Bujumbura',
-      to: 'Kigali',
-      distance: '900 km',
-      duration: '18h',
-      price: 200000,
-      busCompany: 'Gateway',
-      busType: 'Executive',
-      departureTime: '05:00',
-      arrivalTime: '23:00',
-      availableSeats: 32,
-      totalSeats: 53,
-      days: ['Wed', 'Sun'],
-      amenities: ['wifi', 'ac', 'usb', 'entertainment', 'meals'],
-      rating: 4.6,
-      reviews: 112,
-      image: '/routes/img9.jpg',
-      busNumber: 'LB-008',
-      stops: ['Kampala', 'Masaka', 'Mbarara', 'Kabale', 'Kigali', 'Bujumbura']
-    },
-  ];
+  useEffect(() => {
+    setIsLoading(true);
+    getBuses()
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setRoutes(res.data.map(mapBusToRoute));
+        } else {
+          setError(res.errorMessage || 'Failed to load routes.');
+        }
+      })
+      .catch(() => setError('Failed to load routes.'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const getAmenityIcon = (amenity) => {
-    switch(amenity) {
+    switch (amenity) {
       case 'wifi': return <Wifi size={14} />;
       case 'ac': return <Wind size={14} />;
       case 'usb': return <Zap size={14} />;
@@ -233,7 +102,7 @@ const RoutesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -267,151 +136,166 @@ const RoutesPage = () => {
           </div>
         </div>
 
-        {/* Routes Grid/List */}
-        <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-          : "space-y-4"
-        }>
-          {routes.map((route) => (
-            <div
-              key={route.id}
-              className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden
-                ${viewMode === 'list' ? 'flex flex-col md:flex-row' : ''}
-              `}
-            >
-              {/* Image */}
-              <div className={viewMode === 'list' ? 'md:w-64 flex-shrink-0' : ''}>
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={route.image}
-                    alt={`${route.from} to ${route.to}`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-semibold">{route.rating}</span>
-                  </div>
-                </div>
-              </div>
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-24 text-gray-500">
+            <Loader size={36} className="animate-spin mb-4 text-blue-500" />
+            <p className="text-sm">Loading routes from the network...</p>
+          </div>
+        )}
 
-              {/* Content */}
-              <div className="p-6 flex-1">
-                {/* Route Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {route.from} → {route.to}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">{route.distance} • {route.duration}</p>
-                  </div>
-                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold">
-                    {route.busType}
-                  </span>
-                </div>
+        {/* Error */}
+        {!isLoading && error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-center">
+            <p className="font-semibold">Couldn't load routes</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        )}
 
-                {/* Bus Info */}
-                <div className="flex items-center space-x-2 mb-4">
-                  <Bus size={16} className="text-gray-400" />
-                  <span className="text-sm text-gray-600">{route.busCompany}</span>
-                  <span className="text-xs text-gray-400">• {route.busNumber}</span>
-                </div>
+        {/* Empty */}
+        {!isLoading && !error && routes.length === 0 && (
+          <div className="bg-white rounded-xl shadow-md p-12 text-center text-gray-500">
+            <div className="text-5xl mb-4">🚌</div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-1">No routes available yet</h3>
+            <p className="text-sm">Check back later or ask the admin to add buses.</p>
+          </div>
+        )}
 
-                {/* Time & Availability */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Departure</p>
-                    <p className="font-semibold">{route.departureTime}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Arrival</p>
-                    <p className="font-semibold">{route.arrivalTime}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Available</p>
-                    <p className="font-semibold text-green-600">{route.availableSeats}/{route.totalSeats}</p>
-                  </div>
-                </div>
-
-                {/* Operating Days */}
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-2">Operating Days</p>
-                  <div className="flex flex-wrap gap-1">
-                    {route.days.map(day => (
-                      <span
-                        key={day}
-                        className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-xs flex items-center justify-center font-medium"
-                      >
-                        {day.slice(0, 1)}
-                      </span>
-                    ))}
+        {/* Routes Grid / List */}
+        {!isLoading && !error && routes.length > 0 && (
+          <div className={viewMode === 'grid'
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+            : 'space-y-4'
+          }>
+            {routes.map((route) => (
+              <div
+                key={route.id}
+                className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${
+                  viewMode === 'list' ? 'flex flex-col md:flex-row' : ''
+                }`}
+              >
+                {/* Image */}
+                <div className={viewMode === 'list' ? 'md:w-64 flex-shrink-0' : ''}>
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={route.image}
+                      alt={`${route.from} to ${route.to}`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    />
+                    {/* Rating badge */}
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm font-semibold">{route.rating}</span>
+                    </div>
+                    {/* Departure date badge */}
+                    {route.departureDate && (
+                      <div className="absolute bottom-3 left-3 bg-blue-600/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center space-x-1">
+                        <Calendar size={12} className="text-white" />
+                        <span className="text-xs text-white font-medium">
+                          {new Date(route.departureDate).toLocaleDateString('en-GB', {
+                            day: 'numeric', month: 'short', year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Amenities */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {route.amenities.slice(0, 4).map(amenity => (
-                    <span
-                      key={amenity}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs flex items-center space-x-1"
-                    >
-                      {getAmenityIcon(amenity)}
-                      <span className="capitalize ml-1">{amenity}</span>
+                {/* Content */}
+                <div className="p-6 flex-1">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">{route.from} → {route.to}</h3>
+                    </div>
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold">
+                      {route.busType}
                     </span>
-                  ))}
-                  {route.amenities.length > 4 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                      +{route.amenities.length - 4} more
-                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Bus size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-600">{route.busCompany}</span>
+                    <span className="text-xs text-gray-400">• {route.busNumber}</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Departure</p>
+                      <p className="font-semibold">{route.departureTime}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Arrival</p>
+                      <p className="font-semibold">{route.arrivalTime}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Seats</p>
+                      <p className="font-semibold text-green-600">{route.availableSeats}/{route.totalSeats}</p>
+                    </div>
+                  </div>
+
+                  {route.amenities.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {route.amenities.slice(0, 4).map(amenity => (
+                        <span
+                          key={amenity}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs flex items-center space-x-1"
+                        >
+                          {getAmenityIcon(amenity)}
+                          <span className="capitalize ml-1">{amenity}</span>
+                        </span>
+                      ))}
+                      {route.amenities.length > 4 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                          +{route.amenities.length - 4} more
+                        </span>
+                      )}
+                    </div>
                   )}
-                </div>
 
-                {/* Stops */}
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-1">Major Stops</p>
-                  <p className="text-sm text-gray-700 truncate">
-                    {route.stops.join(' → ')}
-                  </p>
-                </div>
+                  {route.stops.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-1">Route</p>
+                      <p className="text-sm text-gray-700 truncate">{route.stops.join(' → ')}</p>
+                    </div>
+                  )}
 
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div>
-                    <p className="text-sm text-gray-500">Starting from</p>
-                    <p className="text-2xl font-bold text-blue-600">UGX {route.price.toLocaleString()}</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div>
+                      <p className="text-sm text-gray-500">Starting from</p>
+                      <p className="text-2xl font-bold text-blue-600">UGX {route.price.toLocaleString()}</p>
+                    </div>
+                    <Link
+                      to={`/booking?from=${route.from}&to=${route.to}&date=${route.departureDate || selectedDate}`}
+                      className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 group"
+                    >
+                      <span>Book</span>
+                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
-                  <Link
-                    to={`/booking?from=${route.from}&to=${route.to}&date=${selectedDate}`}
-                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 group"
-                  >
-                    <span>Book</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Popular Cities Section */}
+        {/* Popular Cities */}
         <section className="mt-16">
           <h2 className="text-2xl font-bold mb-6">Popular Destinations</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { city: 'Nairobi', country: 'Kenya', image: '🇰🇪' },
-              { city: 'Kigali', country: 'Rwanda', image: '🇷🇼' },
-              { city: 'Dar es Salaam', country: 'Tanzania', image: '🇹🇿' },
-              { city: 'Juba', country: 'South Sudan', image: '🇸🇸' },
-              { city: 'Bujumbura', country: 'Burundi', image: '🇧🇮' },
-              { city: 'Kinshasa', country: 'DRC', image: '🇨🇩' },
+              { city: 'Nairobi', country: 'Kenya', flag: '🇰🇪' },
+              { city: 'Kigali', country: 'Rwanda', flag: '🇷🇼' },
+              { city: 'Dar es Salaam', country: 'Tanzania', flag: '🇹🇿' },
+              { city: 'Juba', country: 'South Sudan', flag: '🇸🇸' },
+              { city: 'Bujumbura', country: 'Burundi', flag: '🇧🇮' },
+              { city: 'Kinshasa', country: 'DRC', flag: '🇨🇩' },
             ].map((dest, index) => (
               <Link
                 key={index}
                 to={`/booking?to=${dest.city}`}
                 className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-4 text-center group"
               >
-                <span className="text-4xl mb-2 block group-hover:scale-110 transition-transform">
-                  {dest.image}
-                </span>
+                <span className="text-4xl mb-2 block group-hover:scale-110 transition-transform">{dest.flag}</span>
                 <h3 className="font-semibold text-gray-800">{dest.city}</h3>
                 <p className="text-sm text-gray-500">{dest.country}</p>
               </Link>
@@ -419,7 +303,7 @@ const RoutesPage = () => {
           </div>
         </section>
 
-        {/* Route Map Preview */}
+        {/* Route Map */}
         <section className="mt-16 bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -428,12 +312,10 @@ const RoutesPage = () => {
             </div>
             <div className="flex items-center space-x-4">
               <button className="flex items-center space-x-2 text-blue-500 hover:text-blue-600">
-                <Download size={18} />
-                <span>Download Map</span>
+                <Download size={18} /><span>Download Map</span>
               </button>
               <button className="flex items-center space-x-2 text-blue-500 hover:text-blue-600">
-                <Share2 size={18} />
-                <span>Share</span>
+                <Share2 size={18} /><span>Share</span>
               </button>
             </div>
           </div>
@@ -443,41 +325,32 @@ const RoutesPage = () => {
               alt="Route Map"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/5"></div>
+            <div className="absolute inset-0 bg-black/5" />
             <div className="absolute inset-0">
-              {/* Kampala */}
               <div className="absolute top-1/2 left-1/3 transform -translate-x-1/2 -translate-y-1/2">
                 <div className="relative">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping absolute"></div>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full relative"></div>
-                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">
-                    Kampala
-                  </span>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping absolute" />
+                  <div className="w-3 h-3 bg-blue-500 rounded-full relative" />
+                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">Kampala</span>
                 </div>
               </div>
-              {/* Nairobi */}
               <div className="absolute top-1/3 right-1/4">
                 <div className="relative">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">
-                    Nairobi
-                  </span>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">Nairobi</span>
                 </div>
               </div>
-              {/* Kigali */}
               <div className="absolute top-1/2 left-1/2">
                 <div className="relative">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">
-                    Kigali
-                  </span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold bg-white/90 px-2 py-1 rounded whitespace-nowrap">Kigali</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Help Section */}
+        {/* Help */}
         <section className="mt-16 bg-gradient-to-r from-blue-600 to-blue-400 rounded-xl p-8 text-white">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="mb-4 md:mb-0">

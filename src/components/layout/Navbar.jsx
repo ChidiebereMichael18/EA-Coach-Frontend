@@ -42,10 +42,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group ">
-            <Bus className="w-8 h-8 text-primary transition-transform group-hover:scale-110 " />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              EA Coach
-            </span>
+            <img src="/logo2.png" alt=""  className='w-25 h-20' />
           </Link>
 
           {/* Desktop Navigation */}
