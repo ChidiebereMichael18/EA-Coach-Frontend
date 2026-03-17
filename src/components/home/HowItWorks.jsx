@@ -14,7 +14,7 @@ const steps = [
     title: 'Compare',
     description: 'Compare prices, times, and operators side by side.',
     color: 'from-orange-500 to-orange-600',
-    image: '/routes/comparee.webp'
+    image: '/routes/compare3.webp'
   },
   {
     icon: Grid,
