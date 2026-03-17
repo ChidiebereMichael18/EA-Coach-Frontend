@@ -212,6 +212,7 @@ const ChatSupport = () => {
                   >
                     <Send size={20} />
                   </button>
+                  {/* this is a button */}
                 </div>
               </form>
             </>
